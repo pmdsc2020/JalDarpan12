@@ -1,0 +1,1869 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>जलदर्पण — गावाचा पाण्याचा ताळेबंद</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Martel:wght@700;800&family=Mukta:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F2F5F1; --panel:#FFFFFF; --ink:#1F2D33; --muted:#5B6A6E; --line:#D5DDD8;
+  --water:#1C6CA8; --deep:#0F4C75; --shallow:#9CC7E6; --head:#E4EEF6;
+  --bad:#A23B26; --bad-bg:#F8E6E1; --warn:#C98A12; --warn-bg:#FBF0D9;
+  --good:#3F7A34; --good-bg:#E3EFDF; --soil:#B79A7A;
+  --tap:56px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#141B1E; --panel:#1C2529; --ink:#E9EFED; --muted:#9AA8AC; --line:#33403F;
+  --water:#4A9AD6; --deep:#7FB9E6; --shallow:#24506F; --head:#22323C;
+  --bad:#E0775F; --bad-bg:#3A2320; --warn:#E5B144; --warn-bg:#3A301B;
+  --good:#7DBA6E; --good-bg:#1F3320; --soil:#6E5B47;}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:"Mukta","Noto Sans Devanagari","Nirmala UI",system-ui,sans-serif;font-size:18px;line-height:1.55}
+h1,h2,h3{font-family:"Martel","Noto Serif Devanagari",Georgia,serif;margin:0;line-height:1.3}
+h1{font-size:1.35rem} h2{font-size:1.15rem} h3{font-size:1rem}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--warn);outline-offset:2px}
+.top{position:sticky;top:0;z-index:20;background:var(--panel);border-bottom:2px solid var(--ink);
+  display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px}
+.top .mode{border:1.5px solid var(--line);background:transparent;border-radius:999px;padding:6px 12px;font-size:.85rem;cursor:pointer}
+.wrap{max-width:820px;margin:0 auto;padding:14px 14px 120px}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{width:34px;height:34px;color:var(--water);flex:none}
+.credit{margin:18px 0 8px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel);
+  font-size:.88rem;color:var(--muted);display:flex;gap:12px;align-items:center}
+.credit .logo{width:28px;height:28px}
+.board .blogo{width:34px;height:34px;color:#000;vertical-align:middle;margin-right:8px}
+.board .bcredit{font-size:10px;margin-top:6px;border-top:1px solid #000;padding-top:4px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+.q{font-size:1.25rem;font-weight:600;margin:0 0 4px;font-family:"Martel",Georgia,serif}
+.sub{color:var(--muted);font-size:.95rem;margin:0 0 14px}
+.steps{display:flex;gap:6px;margin:0 0 14px}
+.steps i{flex:1;height:6px;border-radius:3px;background:var(--line)}
+.steps i.on{background:var(--water)} .steps i.done{background:var(--good)}
+.nav{position:fixed;left:0;right:0;bottom:0;background:var(--panel);border-top:1px solid var(--line);
+  display:flex;gap:10px;padding:10px 14px;z-index:20}
+.nav .btn{flex:1}
+.btn{min-height:var(--tap);border:2px solid var(--ink);background:var(--ink);color:var(--paper);
+  border-radius:12px;padding:10px 16px;font-weight:600;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn.small{min-height:44px;padding:6px 12px;font-size:.9rem;border-width:1.5px}
+.counter{display:flex;align-items:center;gap:10px;margin:8px 0 16px}
+.counter button{width:var(--tap);height:var(--tap);border-radius:14px;border:2px solid var(--line);
+  background:var(--panel);font-size:1.6rem;font-weight:700;cursor:pointer;line-height:1}
+.counter input{flex:1;min-width:0;height:var(--tap);border:2px solid var(--line);border-radius:14px;
+  background:var(--paper);text-align:center;font-size:1.5rem;font-weight:700;font-variant-numeric:tabular-nums}
+.counter .lbl{font-size:1.05rem;font-weight:600}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.chip{border:2px solid var(--line);background:var(--panel);border-radius:999px;padding:10px 16px;
+  min-height:48px;cursor:pointer;font-size:1rem}
+.chip[aria-pressed="true"]{border-color:var(--water);background:var(--head);font-weight:700}
+.pick{display:grid;grid-template-columns:1fr;gap:10px;margin:10px 0}
+.pick button{min-height:var(--tap);border:2px solid var(--line);background:var(--panel);border-radius:14px;
+  padding:12px 14px;text-align:left;cursor:pointer;display:flex;gap:12px;align-items:center;font-size:1.05rem}
+.pick button[aria-pressed="true"]{border-color:var(--water);background:var(--head)}
+.pick .em{font-size:1.5rem}
+.cond{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:6px}
+.cond button{min-height:48px;border:2px solid var(--line);background:var(--panel);border-radius:10px;
+  cursor:pointer;font-size:.9rem;padding:4px}
+.cond button[aria-pressed="true"]{border-color:var(--water);background:var(--head);font-weight:700}
+label.f{display:block;margin:10px 0}
+label.f span{display:block;font-size:.95rem;color:var(--muted);margin-bottom:4px}
+label.f input,label.f select,textarea{width:100%;min-height:50px;border:2px solid var(--line);border-radius:12px;
+  padding:10px 12px;background:var(--paper);font-size:1.05rem}
+textarea{min-height:120px;font-size:.85rem;font-family:ui-monospace,monospace}
+.big{font-family:"Martel",Georgia,serif;font-weight:800;font-size:2.1rem;font-variant-numeric:tabular-nums;line-height:1.1}
+.big.neg{color:var(--bad)} .big.pos{color:var(--good)}
+.unit{color:var(--muted);font-size:.95rem}
+.status{border-radius:12px;padding:12px 14px;font-weight:700;margin:10px 0;font-size:1.05rem}
+.status.bad{background:var(--bad-bg);color:var(--bad)}
+.status.mid{background:var(--warn-bg);color:var(--warn)}
+.status.ok{background:var(--good-bg);color:var(--good)}
+.flow{background:var(--head);border-radius:12px;padding:12px 14px;margin:10px 0}
+.flow div{padding:3px 0;font-size:.95rem}
+.flow b{font-variant-numeric:tabular-nums;float:right}
+.flow .ar{color:var(--muted);text-align:center;padding:0}
+.sl{margin:16px 0 20px;border-bottom:1px dashed var(--line);padding-bottom:12px}
+.sl .head{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.sl .name{font-weight:600}
+.sl .val{font-size:1.2rem;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.sl .meta{display:flex;justify-content:space-between;font-size:.88rem;color:var(--muted);margin-top:4px}
+.sl .limit{font-size:.82rem;color:var(--warn);margin-top:2px}
+.sl.blocked{opacity:.55}
+.sl .gain{color:var(--good);font-weight:700}
+input[type=range]{width:100%;height:44px;accent-color:var(--water)}
+.sl.save input[type=range]{accent-color:var(--good)}
+table{border-collapse:collapse;width:100%}
+th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left;font-size:.92rem}
+thead th{background:var(--head);font-weight:600;font-size:.85rem}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+table input,table select,table textarea{background:var(--paper);color:var(--ink);
+  border:1.5px solid var(--line);border-radius:8px;padding:6px 8px;min-height:42px;font-size:1rem}
+table select{min-width:110px}
+.board table input{background:#fff;color:#000}
+tr.total td{font-weight:700;background:var(--head)}
+.tscroll{overflow-x:auto}
+.gapwrap{margin:6px 0 14px}
+.gapbar{display:flex;height:38px;border:2px solid var(--ink);border-radius:10px;overflow:hidden;background:var(--bad-bg)}
+.gapbar span{display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;color:#fff;overflow:hidden;white-space:nowrap}
+.gapbar span.rest{background:repeating-linear-gradient(45deg,var(--bad-bg),var(--bad-bg) 6px,#fff 6px,#fff 12px);color:var(--bad)}
+.gaplbl{display:flex;justify-content:space-between;font-size:.85rem;color:var(--muted);margin-top:4px}
+.mrow{display:grid;grid-template-columns:1fr;gap:4px;padding:10px 0;border-bottom:1px dashed var(--line)}
+.mrow .mtop{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.mrow .mname{font-weight:600}
+.mrow .mwater{font-weight:700;color:var(--water);white-space:nowrap;font-variant-numeric:tabular-nums}
+.mbar{display:flex;align-items:center;gap:8px}
+.mbar .track{flex:1;height:22px;background:var(--head);border-radius:6px;overflow:hidden}
+.mbar .track i{display:block;height:100%;background:var(--water)}
+.mbar .cost{font-size:.9rem;color:var(--ink);white-space:nowrap;font-variant-numeric:tabular-nums}
+.mrow .mrate{font-size:.82rem;color:var(--muted)}
+.mrow.best{background:var(--good-bg);border-radius:10px;padding:10px;border-bottom:0}
+.mrow.free .mbar .track i{background:var(--good)}
+.chartnote{font-size:.85rem;color:var(--muted);margin-top:8px}
+.pkg{display:grid;gap:8px;margin:10px 0}
+.pkg button{min-height:52px;border:2px solid var(--line);background:var(--panel);border-radius:12px;cursor:pointer;
+  padding:10px 14px;text-align:left;font-size:1rem}
+.note{background:var(--warn-bg);border-left:5px solid var(--warn);padding:10px 14px;border-radius:0 10px 10px 0;
+  font-size:.95rem;margin:10px 0}
+.err{background:var(--bad-bg);border-left:5px solid var(--bad);padding:10px 14px;border-radius:0 10px 10px 0;
+  font-size:.95rem;margin:10px 0;color:var(--bad)}
+.conf{display:inline-block;font-size:.8rem;padding:1px 8px;border-radius:999px;margin-left:6px}
+.conf.h{background:var(--good-bg);color:var(--good)} .conf.m{background:var(--warn-bg);color:var(--warn)}
+.conf.l{background:var(--bad-bg);color:var(--bad)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(min-width:700px){.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}}
+.kv{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px dotted var(--line);font-size:.98rem}
+.kv b{font-variant-numeric:tabular-nums}
+.kv.sum{border-top:2px solid var(--ink);border-bottom:0;font-weight:700;margin-top:6px;padding-top:8px}
+details{border:1px solid var(--line);border-radius:12px;margin-bottom:10px;background:var(--panel)}
+summary{cursor:pointer;padding:14px;font-weight:600;min-height:52px}
+details .body{padding:0 14px 14px}
+.report h2{border-bottom:2px solid var(--ink);padding-bottom:4px;margin:18px 0 8px}
+.report h3{margin:12px 0 4px;color:var(--water)}
+.report .meta{font-size:.92rem;color:var(--muted);margin:2px 0}
+.report .num{text-align:right;font-variant-numeric:tabular-nums}
+.report table{margin:6px 0 14px}
+.report .sig{margin-top:24px;display:flex;justify-content:space-between;gap:20px}
+.report .sig div{flex:1;border-top:1px solid var(--ink);padding-top:4px;text-align:center;font-size:.85rem;color:var(--muted)}
+@media print{ .top,.nav,.noprint{display:none!important} body{background:#fff;font-size:11pt} .wrap{padding:0;max-width:none} .card{border:0;padding:0;margin-bottom:8px} .report h2{page-break-after:avoid} }
+/* ---- village board (फलक) ---- */
+.board{background:#fff;color:#000;font-size:12px;min-width:1120px;max-width:100%}
+.board *{color:#000}
+.board h1{font-size:20px;text-align:center;margin:0}
+.board .bhead{text-align:center;border-bottom:2px solid #000;padding-bottom:6px;margin-bottom:8px}
+.board .cols{display:grid;grid-template-columns:1fr;gap:10px}
+.board .cols{grid-template-columns:1fr 1fr 1fr}
+.board table{width:100%;border-collapse:collapse;margin-bottom:8px;background:#fff;table-layout:fixed}
+.board td,.board th{overflow-wrap:break-word}
+.board th,.board td{border:1px solid #000;padding:3px 5px;font-size:11.5px;line-height:1.35}
+.board th{background:#e8eef4;font-weight:700;text-align:center}
+.board td.n{text-align:right;font-variant-numeric:tabular-nums}
+.board caption{caption-side:top;text-align:left;font-weight:700;font-size:13px;padding:4px 0}
+.board .fill{background:#fffdf0}
+.board.blank td.w{height:26px}
+.board .sumbox{border:2px solid #000;padding:6px 8px;margin-top:6px;font-weight:700;font-size:12px;display:flex;justify-content:space-between;gap:6px}
+.board .foot{font-size:10.5px;margin-top:6px}
+@media print{
+  .board .cols{grid-template-columns:1fr 1fr 1fr}
+  .board table{page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<style id="pagecss"></style>
+<div class="top">
+  <div class="brand"><svg class="logo" viewBox="0 0 48 48" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M24 3.5C24 3.5 9.5 19.5 9.5 29.5a14.5 14.5 0 0 0 29 0C38.5 19.5 24 3.5 24 3.5Z" stroke-width="2.4"/><path d="M24 19v19M13.5 24h21" stroke-width="1.9"/><path d="M13.5 24 9.6 31a4.3 4.3 0 0 0 7.8 0Z" stroke-width="1.6"/><path d="M34.5 24 30.6 31a4.3 4.3 0 0 0 7.8 0Z" stroke-width="1.6"/><path d="M19.5 38h9" stroke-width="1.9"/></g><circle cx="24" cy="19" r="2.2" fill="currentColor"/></svg><div><b id="topTitle">जलदर्पण</b><div class="unit" id="topSub"></div></div></div>
+  <button class="mode" id="modeBtn" type="button">तांत्रिक</button>
+</div>
+<div class="wrap" id="app"></div>
+<div class="wrap noprint" style="padding-top:0"><div class="credit"><svg class="logo" viewBox="0 0 48 48" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M24 3.5C24 3.5 9.5 19.5 9.5 29.5a14.5 14.5 0 0 0 29 0C38.5 19.5 24 3.5 24 3.5Z" stroke-width="2.4"/><path d="M24 19v19M13.5 24h21" stroke-width="1.9"/><path d="M13.5 24 9.6 31a4.3 4.3 0 0 0 7.8 0Z" stroke-width="1.6"/><path d="M34.5 24 30.6 31a4.3 4.3 0 0 0 7.8 0Z" stroke-width="1.6"/><path d="M19.5 38h9" stroke-width="1.9"/></g><circle cx="24" cy="19" r="2.2" fill="currentColor"/></svg>
+  <div><b>जलदर्पण</b> — गावाचे पाणी, गावाच्या हातात<br>
+  हे साधन तयार केले: <b>जितेंद्र सोनवणे</b>, कृषी अभियंता · ७७२००४५८०८</div></div></div>
+<div class="nav" id="nav"></div>
+
+<script>
+(function(){
+"use strict";
+const $ = s => document.querySelector(s);
+const clone = o => JSON.parse(JSON.stringify(o));
+const nf = (n,d=2)=> Number(n||0).toLocaleString("mr-IN",{minimumFractionDigits:d, maximumFractionDigits:d});
+const n0 = n => Number(n||0).toLocaleString("mr-IN",{maximumFractionDigits:0});
+const TANKER_L = 5000;
+
+function debounce(fn, ms){
+  let t; return function(){ const a = arguments, self = this; clearTimeout(t); t = setTimeout(()=>fn.apply(self,a), ms); };
+}
+function uid(prefix){ return (prefix||"") + Math.random().toString(36).slice(2,9) + Date.now().toString(36).slice(-4); }
+
+/* ============ TECHNICAL MASTER ============ */
+const DEF_MASTER = {
+ pin:"1234",
+ tankerL:TANKER_L,
+ shares:{ plain:{soil:35,gw:15,runoff:25,evap:25},
+          medium:{soil:30,gw:15,runoff:35,evap:20},
+          hill:{soil:25,gw:10,runoff:45,evap:20} },
+ terrainName:{plain:"सपाट, खोल काळी जमीन", medium:"मध्यम उतार", hill:"डोंगराळ उतार"},
+ rainScen:{ good:1.20, normal:1.00, low:0.70 },
+ runoffMethod:"board",
+ landC:{ forest:10, sownIrr:18, sownRain:22, fallow:25, pasture:30, waste:30 },
+ strangeClass:{ plain:"bad", medium:"average", hill:"good" },
+ strangeVerified:false,
+ strange:[
+  {mm:250,  good:6,  average:4.5, bad:3},
+  {mm:500,  good:15, average:11,  bad:7.5},
+  {mm:750,  good:25, average:19,  bad:12.5},
+  {mm:1000, good:34, average:25,  bad:17},
+  {mm:1250, good:43, average:32,  bad:21.5}
+ ],
+ norms:{ person:40, large:60, small:30, bird:2 },
+ cond:{ good:1.00, mod:0.60, poor:0.25 },
+ restoreCost:50000,
+ save:{ drip:25, mulch:15, shortVar:12, dripCost:85000, mulchCost:12000 },
+ crops:[
+  {k:"kapus", mr:"कापूस", em:"🌿", rate:1.05, season:"kharif"},
+  {k:"soya",  mr:"सोयाबीन", em:"🫘", rate:0.40, season:"kharif"},
+  {k:"tur",   mr:"तूर / कडधान्य", em:"🌱", rate:0.10, season:"kharif"},
+  {k:"maka",  mr:"मका", em:"🌽", rate:0.35, season:"kharif"},
+  {k:"bajri", mr:"बाजरी", em:"🌾", rate:0.30, season:"kharif"},
+  {k:"bhat",  mr:"भात", em:"🍚", rate:1.04, season:"kharif"},
+  {k:"gahu",  mr:"गहू", em:"🌾", rate:1.05, season:"rabi"},
+  {k:"harbhara", mr:"हरभरा", em:"🌱", rate:0.30, season:"rabi"},
+  {k:"kanda", mr:"कांदा", em:"🧅", rate:0.75, season:"rabi"},
+  {k:"bhajipala", mr:"भाजीपाला", em:"🥬", rate:0.80, season:"rabi"},
+  {k:"us",    mr:"ऊस", em:"🎋", rate:2.30, season:"perennial"},
+  {k:"keli",  mr:"केळी", em:"🍌", rate:2.00, season:"perennial"},
+  {k:"dalimb",mr:"डाळिंब", em:"🍎", rate:1.20, season:"perennial"},
+  {k:"itar",  mr:"इतर", em:"🌼", rate:0.50, season:"kharif"}
+ ],
+ structs:[
+  {k:"fp",   mr:"शेततळे", em:"🟦", unit:"each", cap:2500, act:2000, fills:1, cost:200000, max:60, stage:"field"},
+  {k:"mnb",  mr:"मातीनाला बांध", em:"🟫", unit:"each", cap:1020, act:675, fills:2, cost:300000, max:25, stage:"nala"},
+  {k:"cnb",  mr:"सिमेंट नाला बांध", em:"🧱", unit:"each", cap:5600, act:1800, fills:2, cost:1500000, max:15, stage:"nala"},
+  {k:"nk",   mr:"नाला खोलीकरण", em:"⛏️", unit:"each", cap:5000, act:4000, fills:2, cost:200000, max:15, stage:"nala"},
+  {k:"pt",   mr:"पाझर तलाव", em:"🏞️", unit:"each", cap:30000, act:12000, fills:1, cost:2500000, max:6, stage:"nala"},
+  {k:"kt",   mr:"के.टी. वेअर", em:"🚧", unit:"each", cap:15000, act:10000, fills:2, cost:2000000, max:6, stage:"nala"},
+  {k:"gt",   mr:"गावतलाव", em:"🌊", unit:"each", cap:20000, act:12000, fills:1, cost:2000000, max:4, stage:"nala"},
+  {k:"st",   mr:"सिंचन तलाव", em:"💧", unit:"each", cap:50000, act:35000, fills:1, cost:5000000, max:3, stage:"nala"},
+  {k:"cct",  mr:"सलग समतल चर (CCT)", em:"〰️", unit:"ha", cap:300, act:250, fills:2, cost:18000, max:400, stage:"ridge"},
+  {k:"dcct", mr:"खोल सलग समतल चर", em:"〰️", unit:"ha", cap:600, act:500, fills:2, cost:35000, max:250, stage:"ridge"},
+  {k:"cb",   mr:"कंपार्टमेंट बंडिंग", em:"▦", unit:"ha", cap:250, act:200, fills:2, cost:15000, max:300, stage:"ridge"},
+  {k:"wr",   mr:"विहीर पुनर्भरण", em:"⭕", unit:"each", cap:250, act:250, fills:2, cost:25000, max:150, stage:"field"}
+ ],
+ villages:[
+  {id:"v_namuna_shahada", name:"नमुना गाव (उदाहरण)", district:"नंदुरबार", taluka:"शहादा", gp:"नमुना",
+   pop:1420, area:1008, forest:180, sownIrr:220, sownRain:480, fallow:48, pasture:50, waste:30,
+   rain:450, terrain:"medium", src:{area:"h", pop:"h", rain:"m"}}
+ ]
+};
+const DISTRICTS = {
+ "नंदुरबार":["अक्कलकुवा","अक्राणी (धडगाव)","तळोदा","शहादा","नंदुरबार","नवापूर"],
+ "धुळे":["धुळे","साक्री","शिरपूर","शिंदखेडा"],
+ "इतर":["इतर"]
+};
+
+/* ============ STATE ============ */
+const DEF_VILLAGE = ()=>({
+ id:null,
+ name:"", district:"नंदुरबार", taluka:"शहादा", gp:"", area:0, terrain:"medium",
+ forest:0, sownIrr:0, sownRain:0, fallow:0, pasture:0, waste:0,
+ rain:0, rainScen:"normal", rainCustom:null,
+ pop:0, large:0, small:0, birds:0, industry:0,
+ crops:{},
+ structs:{},
+ src:{area:"l", pop:"l", rain:"l", crops:"m", structs:"m"}
+});
+const DEF_PLAN = ()=>({ add:{}, restore:0, dripAcre:0, mulchAcre:0, shortVar:0,
+ shiftPerennial:0, shiftRabi:0, summerCut:0, margin:10, budget:2500000 });
+
+let M = load("wb_master_v3") || clone(DEF_MASTER);
+let V = load("wb_village_v3") || DEF_VILLAGE();
+let P = load("wb_plan_v3") || DEF_PLAN();
+let UI = { screen:"wizard", step:1, tech:false, techTab:"shares", blank:false, paper:"A3" };
+
+// --- normalise imported / older state -------------------------------------
+M = Object.assign(clone(DEF_MASTER), M || {});
+M.shares = Object.assign(clone(DEF_MASTER.shares), M.shares || {});
+M.landC = Object.assign(clone(DEF_MASTER.landC), M.landC || {});
+M.save = Object.assign(clone(DEF_MASTER.save), M.save || {});
+M.norms = Object.assign(clone(DEF_MASTER.norms), M.norms || {});
+M.cond = Object.assign(clone(DEF_MASTER.cond), M.cond || {});
+M.rainScen = Object.assign(clone(DEF_MASTER.rainScen), M.rainScen || {});
+M.strangeClass = Object.assign(clone(DEF_MASTER.strangeClass), M.strangeClass || {});
+if (!Array.isArray(M.strange) || !M.strange.length) M.strange = clone(DEF_MASTER.strange);
+if (!Array.isArray(M.crops) || !M.crops.length) M.crops = clone(DEF_MASTER.crops);
+if (!Array.isArray(M.structs) || !M.structs.length) M.structs = clone(DEF_MASTER.structs);
+if (!Array.isArray(M.villages)) M.villages = [];
+M.villages.forEach(v=>{ if (!v.id) v.id = uid("v_"); });
+P = Object.assign(clone(DEF_PLAN()), P || {});
+P.add = P.add || {};
+
+function load(k){ try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch(e){ return null; } }
+const _saveNow = ()=>{ try {
+  localStorage.setItem("wb_master_v3", JSON.stringify(M));
+  localStorage.setItem("wb_village_v3", JSON.stringify(V));
+  localStorage.setItem("wb_plan_v3", JSON.stringify(P));
+} catch(e){} };
+const save = debounce(_saveNow, 250);
+
+const struct = k => M.structs.find(s=>s.k===k);
+const sid = id => "x"+String(id).replace(/[^A-Za-z0-9]/g,"_");
+const cropDef = k => M.crops.find(c=>c.k===k);
+const acToHa = a => a*0.4047;
+const haToAc = h => h/0.4047;
+const LANDF = [["forest","वन जमीन"],["sownIrr","लागवडीखालील — बागायत"],["sownRain","लागवडीखालील — जिरायत"],
+  ["fallow","पडीक जमीन"],["pasture","गायरान / कुरण"],["waste","लागवडीयोग्य पडीक"]];
+const seasonMr = s => ({kharif:"खरीप", rabi:"रब्बी", summer:"उन्हाळी", perennial:"बारमाही"}[s]||s);
+const sownOf = v => (+((v||{}).sownIrr)||0) + (+((v||{}).sownRain)||0);
+const treatOf = v => (+((v||{}).forest)||0) + (+((v||{}).fallow)||0) + (+((v||{}).pasture)||0) + (+((v||{}).waste)||0);
+const landSum = v => sownOf(v) + treatOf(v);
+const haOf = e => (e && e.unit === "ha") ? (+e.acre||0) : acToHa(+((e||{}).acre)||0);
+/* FIX: only item-based works (bunds, tanks, farm ponds…) are restored at a per-item cost.
+   Area-based works (CCT, DCCT, compartment bunding) are entered in acres and must not be
+   costed as "items" at ₹50,000 each. */
+function restorableCount(){
+  let n = 0;
+  M.structs.forEach(s=>{ const ex = V.structs[s.k];
+    if (s.unit !== "ha" && ex && ex.cond !== "good") n += (+ex.n||0); });
+  return n;
+}
+/* FIX: drip / mulch save irrigation water, so they apply only to irrigated crops
+   (rabi, summer, perennial) — not to rainfed kharif crops. */
+const cropSeason = k => ((V.crops[k]||{}).season) || ((cropDef(k)||{}).season) || "kharif";
+const isIrrSeason = s => s === "rabi" || s === "summer" || s === "perennial";
+function irrCropHa(){ let t=0; Object.keys(V.crops).forEach(k=>{ if (cropDef(k) && isIrrSeason(cropSeason(k))) t += haOf(V.crops[k]); }); return t; }
+/* FIX: safe fallback if हरभरा is removed from the crop master in technical mode */
+const gramRate = () => { const g = cropDef("harbhara"); return g ? +g.rate||0 : 0.30; };
+/* FIX: safety-margin target is always based on the ORIGINAL demand (before any plan),
+   so it does not move while savings are being added. */
+const planActive = () => !!((P.add && Object.keys(P.add).some(k=>+P.add[k]>0)) || +P.restore || +P.dripAcre
+  || +P.mulchAcre || +P.shortVar || +P.shiftPerennial || +P.shiftRabi || +P.summerCut);
+const needOf = () => baseRun().demand * ((+P.margin||0)/100);
+
+/* ============ ENGINE ============ */
+function strangePct(mm, cls){
+  const t = (M.strange||[]).slice().sort((a,b)=>a.mm-b.mm);
+  if (!t.length) return null;
+  if (mm <= t[0].mm) return t[0][cls] * (mm/t[0].mm);
+  for (let i=0;i<t.length-1;i++){
+    if (mm >= t[i].mm && mm <= t[i+1].mm){
+      const f = (mm - t[i].mm)/(t[i+1].mm - t[i].mm);
+      return t[i][cls] + f*(t[i+1][cls] - t[i][cls]);
+    }
+  }
+  return t[t.length-1][cls];
+}
+function sharesFor(mm){
+  const base = M.shares[V.terrain] || M.shares.medium;
+  const method = M.runoffMethod || "board";
+  if (method === "board") return {soil:base.soil, gw:base.gw, runoff:base.runoff, evap:base.evap, method, note:"फलकाचे ठराविक प्रमाण"};
+  let ro = null, note = "";
+  if (method === "landuse"){
+    const a = +V.area||0, c = M.landC;
+    const parts = [["forest",c.forest],["sownIrr",c.sownIrr],["sownRain",c.sownRain],
+                   ["fallow",c.fallow],["pasture",c.pasture],["waste",c.waste]];
+    let num = 0, den = 0;
+    parts.forEach(([f,cf])=>{ const h = +V[f]||0; num += h*cf; den += h; });
+    const rest = Math.max(0, a - den);
+    num += rest*base.runoff; den += rest;
+    ro = den > 0 ? num/den : base.runoff;
+    note = "जमीन वापरानुसार";
+  }
+  if (method === "strange"){
+    const cls = (M.strangeClass||{})[V.terrain] || "average";
+    const p = strangePct(mm, cls);
+    ro = (p === null) ? base.runoff : p;
+    note = "Strange तक्ता (" + ({good:"चांगले", average:"मध्यम", bad:"कमी"}[cls]) + " पाणलोट)";
+  }
+  ro = Math.max(2, Math.min(70, ro));
+  const restBoard = base.soil + base.gw + base.evap;
+  const k = (100 - ro)/ (restBoard || 1);
+  return {soil:base.soil*k, gw:base.gw*k, runoff:ro, evap:base.evap*k, method, note};
+}
+function rainfallMm(){
+  if (V.rainCustom) return +V.rainCustom;
+  return (+V.rain||0) * (M.rainScen[V.rainScen] || 1);
+}
+function cropHa(){ let t=0; Object.keys(V.crops).forEach(k=> t += haOf(V.crops[k])); return t; }
+
+function engine(plan){
+  plan = plan || {};
+  const add = plan.add || {};
+  const mm = rainfallMm(), area = +V.area||0;
+  const rain = area*mm/1000;
+  const sh = sharesFor(mm);
+  const soil = rain*sh.soil/100, gw = rain*sh.gw/100, runoff = rain*sh.runoff/100, evap = rain*sh.evap/100;
+
+  let pool = runoff, harvested = 0;
+  const perStruct = {};
+  ["ridge","nala","field"].forEach(stage=>{
+    M.structs.filter(s=>s.stage===stage).forEach(s=>{
+      const ex = V.structs[s.k] || {n:0, cond:"good"};
+      const condBase = M.cond[ex.cond] !== undefined ? M.cond[ex.cond] : 1;
+      const condEff = s.unit === "ha" ? condBase : condBase + (1-condBase)*(+plan.restore||0)/100;
+      const conv = s.unit === "ha" ? 0.4047 : 1;
+      const oldUnits = (+ex.n||0)*conv, newUnits = (+add[s.k]||0)*conv;
+      const potential = (oldUnits*condEff + newUnits) * s.act * s.fills / 10000;
+      const got = Math.max(0, Math.min(potential, pool));
+      pool -= got; harvested += got;
+      perStruct[s.k] = {potential, got, oldUnits, newUnits};
+    });
+  });
+  const available = soil + gw + harvested;
+
+  const drinkPeople = (+V.pop||0)*M.norms.person*365/1e7;
+  const drinkLarge  = (+V.large||0)*M.norms.large*365/1e7;
+  const drinkSmall  = (+V.small||0)*M.norms.small*365/1e7;
+  const drinkBirds  = (+V.birds||0)*M.norms.bird*365/1e7;
+  const drink = drinkPeople+drinkLarge+drinkSmall+drinkBirds;
+  const industry = +V.industry||0;
+
+  const totalHa = cropHa();
+  const irrHa = irrCropHa();
+  const dripFrac = irrHa>0 ? Math.min(1, acToHa(+plan.dripAcre||0)/irrHa) : 0;
+  const mulchFrac = irrHa>0 ? Math.min(1, acToHa(+plan.mulchAcre||0)/irrHa) : 0;
+  let cropNeed = 0; const perSeason = {kharif:0, rabi:0, summer:0, perennial:0}, perCrop = {};
+  Object.keys(V.crops).forEach(k=>{
+    const c = cropDef(k); if (!c) return;
+    const entry = V.crops[k]; const season = entry.season || c.season;
+    let ha = haOf(entry);
+    if (season === "summer") ha = ha*(1 - (+plan.summerCut||0)/100);
+    let w;
+    if (season === "perennial"){
+      const moved = ha*(+plan.shiftPerennial||0)/100;
+      w = (ha-moved)*c.rate + moved*gramRate();
+    } else if (season === "rabi" && (k === "gahu" || k === "kanda")){
+      const moved = ha*(+plan.shiftRabi||0)/100;
+      w = (ha-moved)*c.rate + moved*gramRate();
+    } else w = ha*c.rate;
+    if (isIrrSeason(season)) w = w*(1 - dripFrac*M.save.drip/100)*(1 - mulchFrac*M.save.mulch/100);
+    if (season !== "perennial") w = w*(1 - ((+plan.shortVar||0)/100)*M.save.shortVar/100);
+    perCrop[k] = w; perSeason[season] += w; cropNeed += w;
+  });
+  const demand = drink + industry + cropNeed;
+  return {mm, rain, sh, soil, gw, runoff, evap, harvested, poolLeft:pool, perStruct, available,
+    drink, drinkPeople, drinkLarge, drinkSmall, drinkBirds, industry, cropNeed, perSeason, perCrop,
+    demand, balance: available - demand, totalHa};
+}
+const EMPTY = ()=>({add:{}, restore:0, dripAcre:0, mulchAcre:0, shortVar:0, shiftPerennial:0, shiftRabi:0, summerCut:0});
+function baseRun(){ return engine(Object.assign(EMPTY(), {margin:P.margin, budget:P.budget})); }
+
+/* ----------------------------------------------------------------
+   Cost of a plan. Area-based works (CCT, DCCT, कंपार्टमेंट बंडिंग) are
+   entered in acres, but the SoR cost is per hectare — convert here so
+   planCost() matches the sum of measureCost() across every row.
+------------------------------------------------------------------*/
+function planCost(plan){
+  plan = plan || {};
+  const add = plan.add || {};
+  let c = 0;
+  M.structs.forEach(s=>{
+    c += (+add[s.k]||0) * s.cost * (s.unit === "ha" ? 0.4047 : 1);
+  });
+  const restorable = restorableCount();
+  c += restorable * ((+plan.restore||0)/100) * M.restoreCost;
+  c += acToHa(+plan.dripAcre||0) * M.save.dripCost;
+  c += acToHa(+plan.mulchAcre||0) * M.save.mulchCost;
+  return c;
+}
+
+/* Marginal gain of a single measure (used only by legacy callers). */
+function gainOf(key, sk){
+  const full = engine(P).balance;
+  const p = clone(P);
+  if (key === "add") { p.add = p.add || {}; p.add[sk] = 0; } else p[key] = 0;
+  return full - engine(p).balance;
+}
+
+/* ----------------------------------------------------------------
+   Additive attribution of the plan's water effect.
+   Builds the plan up one measure at a time so that
+       Σ GAIN[m.id]  ===  engine(P).balance − engine(EMPTY()).balance
+   i.e. the sum of the per-row values equals the net delta shown
+   in the total row. Marginal gains from gainOf() are NOT additive
+   when a shared runoff pool fills up, so we attribute in the same
+   stage order the engine uses (ridge → nala → field), with the
+   free savings applied first.
+------------------------------------------------------------------*/
+function waterAttribution(){
+  const ms = measures().filter(m => (+m.get()||0) > 0);
+  const stageRank = { ridge:0, nala:1, field:2 };
+  const freeSave   = ms.filter(m => m.kind === "save");
+  const restore    = ms.filter(m => m.id === "restore");
+  const structs    = ms.filter(m => m.key === "add" && m.sk)
+                       .sort((a,b)=> (stageRank[(struct(a.sk)||{}).stage]??9)
+                                   - (stageRank[(struct(b.sk)||{}).stage]??9));
+  const order = [...freeSave, ...restore, ...structs];
+
+  const working = EMPTY();
+  const GAIN = {};
+  let prev = engine(working).balance;
+  order.forEach(m=>{
+    const v = +m.get() || 0;
+    if (m.key === "add"){ working.add = working.add || {}; working.add[m.sk] = v; }
+    else working[m.key] = v;
+    const cur = engine(working).balance;
+    GAIN[m.id] = cur - prev;
+    prev = cur;
+  });
+  const gained = prev - engine(EMPTY()).balance;
+  return { GAIN, gained };
+}
+
+/* cost of a single measure entry (used by every table & report) */
+function measureCost(m){
+  const v = +m.get()||0;
+  if (!v) return 0;
+  if (m.key === "add"){ const s = struct(m.sk); return v * s.cost * (s.unit==="ha" ? 0.4047 : 1); }
+  if (m.key === "restore") return v * m.cost;
+  if (m.key === "dripAcre") return acToHa(v) * M.save.dripCost;
+  if (m.key === "mulchAcre") return acToHa(v) * M.save.mulchCost;
+  return 0;
+}
+
+/* ============ MEASURES ============ */
+function measures(){
+  const list = [];
+  const treatAc = Math.round(haToAc(treatOf(V))), sownAc = Math.round(haToAc(sownOf(V)));
+  M.structs.forEach(s=>{
+    const step = s.unit === "ha" ? 5 : 1;
+    let mx = s.unit === "ha" ? Math.round(s.max/0.4047) : s.max;
+    let why = "";
+    if ((s.k === "cct" || s.k === "dcct") && treatAc > 0 && treatAc < mx){
+      mx = treatAc; why = "वन, पडीक व गायरान क्षेत्रापुरतेच (" + n0(treatAc) + " एकर)"; }
+    if (s.k === "cb" && sownAc > 0 && sownAc < mx){
+      mx = sownAc; why = "लागवडीखालील क्षेत्रापुरतेच (" + n0(sownAc) + " एकर)"; }
+    if (s.k === "fp" && sownAc > 0){
+      const cap = Math.max(5, Math.round(sownAc/5));
+      if (cap < mx){ mx = cap; why = "लागवडीखालील क्षेत्रानुसार जास्तीत जास्त " + n0(cap); }
+    }
+    const blocked = mx < step;
+    list.push({id:"add:"+s.k, key:"add", sk:s.k, name:"नवीन "+s.mr, em:s.em, why, blocked,
+      unit:s.unit==="ha" ? "एकर" : "नग", max: blocked ? step : mx, step:step, kind:"add",
+      cost: s.unit==="ha" ? s.cost*0.4047 : s.cost,
+      get:()=>+P.add[s.k]||0, set:v=>{P.add[s.k]=v;}});
+  });
+  const restorable = restorableCount();
+  if (restorable > 0) list.push({id:"restore", key:"restore", name:"गाळ काढणे व दुरुस्ती", em:"🧹",
+    unit:"%", max:100, step:10, kind:"add", cost:restorable*M.restoreCost/100,
+    get:()=>P.restore, set:v=>{P.restore=v;}});
+  const ha = cropHa(), acres = Math.round(ha/0.4047);
+  const irrAcres = Math.round(irrCropHa()/0.4047);
+  if (irrAcres > 0){
+    const irrWhy = "फक्त बागायती (रब्बी, उन्हाळी, बारमाही) पिकांसाठी (" + n0(irrAcres) + " एकर)";
+    list.push({id:"dripAcre", key:"dripAcre", name:"ठिबक / तुषार सिंचन", em:"💦", unit:"एकर", why:irrWhy,
+      max:irrAcres, step:Math.max(1, Math.round(irrAcres/10)), kind:"save", cost:M.save.dripCost*0.4047,
+      get:()=>Math.min(+P.dripAcre||0, irrAcres), set:v=>{P.dripAcre=v;}});
+    list.push({id:"mulchAcre", key:"mulchAcre", name:"आच्छादन (मल्चिंग)", em:"🍂", unit:"एकर", why:irrWhy,
+      max:irrAcres, step:Math.max(1, Math.round(irrAcres/10)), kind:"save", cost:M.save.mulchCost*0.4047,
+      get:()=>Math.min(+P.mulchAcre||0, irrAcres), set:v=>{P.mulchAcre=v;}});
+  }
+  if (acres > 0){
+    list.push({id:"shortVar", key:"shortVar", name:"कमी कालावधीचे वाण", em:"🌱", unit:"%",
+      max:100, step:20, kind:"save", cost:0, get:()=>P.shortVar, set:v=>{P.shortVar=v;}});
+  }
+  const hasPerennial = Object.keys(V.crops).some(k=>(V.crops[k].season||cropDef(k).season)==="perennial");
+  if (hasPerennial) list.push({id:"shiftPerennial", key:"shiftPerennial", name:"ऊस / केळी / डाळिंब कमी पाण्याच्या पिकाकडे",
+    em:"🔁", unit:"%", max:100, step:20, kind:"save", cost:0, get:()=>P.shiftPerennial, set:v=>{P.shiftPerennial=v;}});
+  const hasRabiShift = Object.keys(V.crops).some(k=>{
+    const s = V.crops[k].season || cropDef(k).season;
+    return s === "rabi" && (k === "gahu" || k === "kanda");
+  });
+  if (hasRabiShift) list.push({id:"shiftRabi", key:"shiftRabi", name:"गहू / कांदा हरभऱ्याकडे",
+    em:"🔁", unit:"%", max:100, step:20, kind:"save", cost:0, get:()=>P.shiftRabi, set:v=>{P.shiftRabi=v;}});
+  const hasSummer = Object.keys(V.crops).some(k=>(V.crops[k].season||cropDef(k).season)==="summer");
+  if (hasSummer) list.push({id:"summerCut", key:"summerCut", name:"उन्हाळी पिकाचे क्षेत्र कमी करणे",
+    em:"☀️", unit:"%", max:100, step:20, kind:"save", cost:0, get:()=>P.summerCut, set:v=>{P.summerCut=v;}});
+  return list;
+}
+
+/* ============ FORMAT ============ */
+function water(v){
+  const a = Math.abs(v);
+  if (a >= 1) return nf(v,2)+" कोटी लिटर";
+  return nf(v*100,1)+" लाख लिटर";
+}
+function tankers(v){ return n0(Math.abs(v)*1e7/M.tankerL)+" टँकर"; }
+function money(r){
+  const a = Math.abs(+r||0);
+  const s = (+r < 0) ? "−" : "";
+  if (a >= 1e7) return s+"₹ "+nf(a/1e7,2)+" कोटी";
+  return s+"₹ "+nf(a/1e5,1)+" लाख";
+}
+function moneyL(r){
+  const a = Math.abs(+r||0);
+  const s = (+r < 0) ? "−" : "";
+  if (a >= 1e7) return s+nf(a/1e7,2)+" कोटी";
+  return s+nf(a/1e5,1)+" लाख";
+}
+function confBadge(level){
+  const m = {h:["उच्च","h"], m:["मध्यम","m"], l:["कमी","l"]};
+  const x = m[level]||m.l; return `<span class="conf ${x[1]}">माहिती विश्वासार्हता: ${x[0]}</span>`;
+}
+
+const FOOT = { fp:0.25, mnb:0.15, cnb:0.2, nk:0.3, pt:1.5, kt:0.6, gt:1.0, st:2.5, wr:0.01 };
+function workArea(plan){
+  let ridge = 0, farm = 0, other = 0;
+  plan = plan || {};
+  const add = plan.add || {};
+  M.structs.forEach(st=>{
+    const ex = V.structs[st.k] || {n:0};
+    const units = (+ex.n||0) + (+add[st.k]||0);
+    if (st.unit === "ha"){
+      const ha = acToHa(units);
+      if (st.k === "cb") farm += ha; else ridge += ha;
+    } else other += units * (FOOT[st.k] || 0.2);
+  });
+  return {ridge, farm, other, total: ridge + farm + other};
+}
+
+/* ============ VALIDATION ============ */
+function validate(){
+  const e = [], w = [];
+  if (!V.name) e.push("गावाचे नाव निवडलेले नाही.");
+  if (!(+V.area>0)) e.push("गावाचे क्षेत्र उपलब्ध नाही. तांत्रिक मोडमध्ये गाव यादीत भरा.");
+  if (!(rainfallMm()>0)) e.push("पावसाची माहिती उपलब्ध नाही.");
+  if (!(+V.pop>0)) w.push("गावाची लोकसंख्या भरलेली नाही.");
+  const shb = M.shares[V.terrain]||{};
+  const sumb = (shb.soil||0)+(shb.gw||0)+(shb.runoff||0)+(shb.evap||0);
+  if (sumb !== 100) e.push("पावसाचे विभाजन १००% होत नाही (सध्या "+n0(sumb)+"%). तांत्रिक मोडमध्ये दुरुस्त करा.");
+  if (M.runoffMethod === "strange" && !M.strangeVerified)
+    w.push("Strange तक्त्यातील आकडे अद्याप पडताळलेले नाहीत. तांत्रिक मोडमध्ये विभागाच्या तक्त्याप्रमाणे भरून खूण करा.");
+  const ha = cropHa(), sown = sownOf(V);
+  if (sown>0 && ha > sown*1.02) e.push("पिकांचे क्षेत्र गावातील लागवडीखालील क्षेत्रापेक्षा जास्त आहे ("+n0(ha)+" हे. विरुद्ध "+n0(sown)+" हे.).");
+  if (+V.area>0 && landSum(V)>0 && landSum(V) > (+V.area)*1.02)
+    w.push("जमिनीच्या वर्गवारीची बेरीज ("+n0(landSum(V))+" हे.) गावाच्या एकूण क्षेत्रापेक्षा ("+n0(V.area)+" हे.) जास्त आहे.");
+  if (treatOf(V) === 0) w.push("वन, पडीक, गायरान क्षेत्र भरलेले नाही; त्यामुळे चर व बांधबंदिस्तीच्या क्षेत्राची मर्यादा तपासता येत नाही.");
+
+  const wa = workArea(P), treat = treatOf(V), sownA = sownOf(V), area = +V.area||0;
+  if (area > 0 && wa.total > area)
+    e.push("नियोजित कामांचे एकूण क्षेत्र ("+n0(wa.total)+" हे.) गावाच्या एकूण क्षेत्रापेक्षा ("+n0(area)+" हे.) जास्त आहे.");
+  if (treat > 0 && wa.ridge > treat)
+    e.push("चर व डोंगरावरील कामांचे क्षेत्र ("+n0(wa.ridge)+" हे.) वन, पडीक व गायरान क्षेत्रापेक्षा ("+n0(treat)+" हे.) जास्त आहे.");
+  if (sownA > 0 && wa.farm > sownA)
+    e.push("बांधबंदिस्तीचे क्षेत्र ("+n0(wa.farm)+" हे.) लागवडीखालील क्षेत्रापेक्षा ("+n0(sownA)+" हे.) जास्त आहे.");
+  if (sownA > 0 && wa.other > sownA*0.05)
+    w.push("बंधारे, तलाव व शेततळ्यांनी अडवलेले जमिनीचे क्षेत्र ("+n0(wa.other)+" हे.) मोठे आहे; जागा उपलब्ध आहे का ते तपासा.");
+
+  const cropKeys = Object.keys(V.crops);
+  if (cropKeys.length){
+    const per = cropKeys.filter(k=>(V.crops[k].season||cropDef(k).season)==="perennial")
+      .reduce((a,k)=>a+haOf(V.crops[k]), 0);
+    if (sownA > 0 && per > sownA*0.6)
+      w.push("बारमाही पिकांचे क्षेत्र लागवडीखालील क्षेत्राच्या ६०% पेक्षा जास्त आहे; आकडे तपासा.");
+    const irr = +V.sownIrr||0;
+    if (irr > 0 && per > irr*1.05)
+      w.push("बारमाही पिकांचे क्षेत्र ("+n0(per)+" हे.) बागायत क्षेत्रापेक्षा ("+n0(irr)+" हे.) जास्त आहे.");
+    if (cropKeys.some(k=>!(+V.crops[k].acre>0)))
+      w.push("काही पिकांचे क्षेत्र शून्य आहे; ती पिके यादीतून काढली तरी चालेल.");
+  }
+  if (ha === 0) w.push("कोणतेही पीक क्षेत्र भरलेले नाही.");
+  const r = engine(P);
+  let potential = 0; Object.keys(r.perStruct).forEach(k=> potential += r.perStruct[k].potential);
+  if (potential > r.runoff + 0.001) w.push("कामांची साठवण क्षमता वाहून जाणाऱ्या पाण्यापेक्षा जास्त आहे; त्यामुळे फक्त "+water(r.harvested)+" एवढेच पाणी धरले आहे.");
+  if (planCost(P) > P.budget) w.push("निवडलेल्या कामांचा खर्च ठरवलेल्या बजेटपेक्षा जास्त आहे.");
+  return {errors:e, warnings:w};
+}
+
+/* ============ PACKAGES ============ */
+function buildPackage(mode){
+  const start = EMPTY();
+  const keep = clone(P);
+  const target = (mode==="security") ? 0.20 : (P.margin/100);
+  const applyTo = p => Object.assign(clone(p), {margin:P.margin, budget:P.budget});
+  const req = engine(applyTo(start)).demand;
+  const need = req*target;
+  const cand = measures().map(m=>({m, v:0}));
+  const p = applyTo(start);
+  const budgetCap = (mode==="low") ? Math.min(P.budget, 1000000) : (mode==="balanced" ? P.budget : Infinity);
+  const capOf = m => (mode==="security" || m.kind!=="save") ? m.max : Math.round(m.max*0.5);
+  let guard = 0;
+  while (guard++ < 90){
+    const cur = engine(p);
+    if (cur.balance >= need) break;
+    let best = null;
+    cand.forEach(c=>{
+      const m = c.m;
+      if (c.v + m.step > capOf(m)) return;
+      const trial = clone(p);
+      if (m.key === "add"){ trial.add = trial.add || {}; trial.add[m.sk] = (+trial.add[m.sk]||0) + m.step; }
+      else trial[m.key] = (+trial[m.key]||0) + m.step;
+      const gain = engine(trial).balance - cur.balance;
+      if (gain <= 0.0005) return;
+      const cost = m.cost*m.step;
+      if (mode === "low" && cost > 0 && cost/gain > 500000) return;
+      const ratio = cost > 0 ? gain/cost : gain*1e9;
+      if (!best || ratio > best.ratio) best = {c, m, gain, cost, ratio, trial};
+    });
+    if (!best) break;
+    const costNow = planCost(Object.assign(clone(best.trial),{restore:best.trial.restore||0}));
+    if (costNow > budgetCap) { best.c.v = capOf(best.m); continue; }
+    best.c.v += best.m.step;
+    if (best.m.key === "add"){ p.add = p.add || {}; p.add[best.m.sk] = (+p.add[best.m.sk]||0) + best.m.step; }
+    else p[best.m.key] = (+p[best.m.key]||0) + best.m.step;
+  }
+  P = applyTo(p); P.margin = keep.margin; P.budget = keep.budget;
+  save(); renderResult();
+}
+
+/* ============ SCREENS ============ */
+function render(){
+  $("#modeBtn").textContent = UI.tech ? "गाव मोड" : "तांत्रिक";
+  $("#topSub").textContent = V.name ? (V.name + " · " + V.taluka) : "गाव निवडलेले नाही";
+  if (UI.tech) return renderTech();
+  if (UI.screen === "wizard") return renderWizard();
+  if (UI.screen === "result") return renderResult();
+  if (UI.screen === "board") return renderBoard();
+  if (UI.screen === "report") return renderReport();
+  return renderWizard();
+}
+
+/* ---- wizard ---- */
+const STEPS = 6;
+function stepsBar(){ let h = '<div class="steps">';
+  for (let i=1;i<=STEPS;i++) h += `<i class="${i<UI.step?"done":(i===UI.step?"on":"")}"></i>`;
+  return h+"</div>"; }
+
+function renderWizard(){
+  const a = $("#app");
+  let body = "";
+  if (UI.step === 1) body = step1();
+  if (UI.step === 2) body = step2();
+  if (UI.step === 3) body = step3();
+  if (UI.step === 4) body = step4();
+  if (UI.step === 5) body = step5();
+  if (UI.step === 6) body = step6();
+  a.innerHTML = stepsBar() + body;
+  $("#nav").innerHTML = `${UI.step>1?'<button class="btn ghost" id="back">मागे</button>':''}
+    <button class="btn" id="next">${UI.step===STEPS?"ताळेबंद पाहा":"पुढे"}</button>`;
+  const b = $("#back"); if (b) b.onclick = ()=>{ UI.step--; render(); window.scrollTo(0,0); };
+  $("#next").onclick = ()=>{
+    if (UI.step === STEPS){ UI.screen = "result"; render(); }
+    else { UI.step++; render(); }
+    window.scrollTo(0,0); save();
+  };
+  wire();
+}
+
+function step1(){
+  const dOpts = Object.keys(DISTRICTS).map(d=>`<option ${V.district===d?"selected":""}>${d}</option>`).join("");
+  const tOpts = (DISTRICTS[V.district]||[]).map(t=>`<option ${V.taluka===t?"selected":""}>${t}</option>`).join("");
+  const here = M.villages.filter(v=>v.taluka===V.taluka);
+  const other = M.villages.filter(v=>v.taluka!==V.taluka);
+  const opt = (v, showT) => `<option value="${v.id||""}" ${V.id===v.id?"selected":""}>${v.name}${showT&&v.taluka?" — "+v.taluka:""}</option>`;
+  const vOpts = `<option value="">— गाव निवडा —</option>`
+    + here.map(v=>opt(v,false)).join("")
+    + (other.length ? `<optgroup label="इतर तालुक्यांतील गावे">${other.map(v=>opt(v,true)).join("")}</optgroup>` : "");
+  const known = M.villages.find(v=>v.id===V.id);
+  return `<div class="card">
+    <p class="q">आपले गाव निवडा</p>
+    <p class="sub">जिल्हा व तालुका निवडा, मग गावाचे नाव निवडा.</p>
+    <label class="f"><span>जिल्हा</span><select data-v="district">${dOpts}</select></label>
+    <label class="f"><span>तालुका</span><select data-v="taluka">${tOpts}</select></label>
+    <label class="f"><span>गाव</span><select id="villagePick">${vOpts}</select></label>
+    <div class="unit" style="margin:-4px 0 10px">यादीत ${n0(M.villages.length)} गावे आहेत${here.length?" · या तालुक्यात "+n0(here.length):""}.
+      <button class="btn small ghost" type="button" id="addVillage" style="margin-left:6px">गाव यादीत जोडा</button></div>
+    <label class="f"><span>ग्रामपंचायत (ऐच्छिक)</span><input type="text" data-v="gp" value="${V.gp||""}"></label>
+    ${known ? `<div class="flow">
+        <div>गावाचे एकूण क्षेत्र <b>${n0(known.area)} हे.</b></div>
+        <div>वन जमीन <b>${n0(known.forest)} हे.</b></div>
+        <div>लागवडीखालील — बागायत <b>${n0(known.sownIrr)} हे.</b></div>
+        <div>लागवडीखालील — जिरायत <b>${n0(known.sownRain)} हे.</b></div>
+        <div>पडीक + गायरान + लागवडीयोग्य पडीक <b>${n0((+known.fallow||0)+(+known.pasture||0)+(+known.waste||0))} हे.</b></div>
+        <div>मृद व जलसंधारण कामांसाठी उपलब्ध क्षेत्र <b>${n0(treatOf(known))} हे. (${n0(haToAc(treatOf(known)))} एकर)</b></div>
+        <div>सरासरी पाऊस <b>${n0(known.rain)} मिमी</b></div>
+        <div>जमिनीचा प्रकार <b>${M.terrainName[known.terrain]}</b></div>
+      </div>${confBadge(known.src&&known.src.area||"m")}`
+      : `<div class="note">गाव यादीत नसेल तर तांत्रिक मोडमध्ये "गाव यादी" मध्ये त्याचे क्षेत्र, शेती क्षेत्र व पाऊस एकदाच भरा. त्यानंतर गावकऱ्यांना ते विचारावे लागणार नाही.</div>`}
+  </div>`;
+}
+
+function counter(label, key, em){
+  return `<div class="card" style="padding:12px 14px;margin-bottom:10px">
+    <div class="counter">
+      <div style="flex:1"><div class="lbl">${em} ${label}</div></div>
+    </div>
+    <div class="counter" style="margin:0">
+      <button type="button" data-step="${key}:-1">−</button>
+      <input type="number" inputmode="numeric" data-v="${key}" value="${+V[key]||0}">
+      <button type="button" data-step="${key}:1">+</button>
+    </div></div>`;
+}
+function step2(){
+  return `<div class="card"><p class="q">गावात किती लोक आणि जनावरे आहेत?</p>
+    <p class="sub">अंदाजे संख्या चालेल. पाण्याचे प्रमाण ॲप स्वतः धरते.</p></div>
+    ${counter("माणसे","pop","👥")}
+    ${counter("मोठी जनावरे (गाय, म्हैस, बैल)","large","🐄")}
+    ${counter("शेळ्या व मेंढ्या","small","🐐")}
+    ${counter("कोंबड्या","birds","🐓")}
+    <div class="card" style="padding:12px 14px;margin-bottom:10px">
+      <div class="counter" style="margin:0 0 4px">
+        <div style="flex:1"><div class="lbl">🏭 उद्योग / व्यवसाय (कोटी लिटर प्रतिवर्ष)</div></div>
+      </div>
+      <div class="counter" style="margin:0">
+        <button type="button" data-fstep="industry:-0.1">−</button>
+        <input type="number" inputmode="decimal" step="0.1" data-v="industry" value="${+V.industry||0}">
+        <button type="button" data-fstep="industry:0.1">+</button>
+      </div>
+      <div class="unit" style="margin-top:6px">गावात मोठा उद्योग नसेल तर ० ठेवा. लहान दुकाने/दूध डेअरी अंदाजे ०.१–०.५ कोटी लिटर.</div>
+    </div>`;
+}
+
+function step3(){
+  const sel = M.crops.map(c=>{
+    const on = !!V.crops[c.k];
+    return `<button class="chip" type="button" data-crop="${c.k}" aria-pressed="${on}">${c.em} ${c.mr}</button>`;
+  }).join("");
+  const rows = Object.keys(V.crops).map(k=>{
+    const c = cropDef(k), e = V.crops[k];
+    if (!c) return "";
+    const seasons = [["kharif","खरीप"],["rabi","रब्बी"],["summer","उन्हाळी"],["perennial","बारमाही"]];
+    return `<div class="card" style="padding:12px 14px;margin-bottom:10px">
+      <div class="row"><b>${c.em} ${c.mr}</b><button class="btn small ghost" type="button" data-cropoff="${k}">काढा</button></div>
+      <div class="counter" style="margin:10px 0 4px">
+        <button type="button" data-cstep="${k}:-1">−</button>
+        <input type="number" inputmode="numeric" data-cacre="${k}" value="${+e.acre||0}">
+        <button type="button" data-cstep="${k}:1">+</button>
+      </div>
+      <div class="unit">किती क्षेत्र? — ${e.unit==="ha"?"हेक्टर":"एकर"}
+        <button class="btn small ghost" type="button" data-cunit="${k}" style="margin-left:6px">एकर / हेक्टर बदला</button></div>
+      <div class="cond" style="margin-top:8px">${seasons.map(s=>
+        `<button type="button" data-cseason="${k}:${s[0]}" aria-pressed="${(e.season||c.season)===s[0]}">${s[1]}</button>`).join("")}</div>
+    </div>`;
+  }).join("");
+  return `<div class="card"><p class="q">गावात कोणती पिके घेतली जातात?</p>
+    <p class="sub">पिकावर बोट ठेवा, मग किती क्षेत्र आहे ते सांगा. क्षेत्र एकरमध्ये सांगितले तरी चालेल.</p>
+    <div class="chips">${sel}</div></div>${rows}`;
+}
+
+function step4(){
+  const cards = M.structs.map(s=>{
+    const ex = V.structs[s.k] || {n:0, cond:"good"};
+    const on = (+ex.n||0) > 0 || ex.picked;
+    return `<div class="card" style="padding:12px 14px;margin-bottom:10px">
+      <button class="chip" type="button" data-struct="${s.k}" aria-pressed="${on}" style="width:100%;text-align:left">${s.em} ${s.mr}</button>
+      ${on ? `<div class="counter" style="margin:10px 0 0">
+        <button type="button" data-sstep="${s.k}:-1">−</button>
+        <input type="number" inputmode="numeric" data-sn="${s.k}" value="${+ex.n||0}">
+        <button type="button" data-sstep="${s.k}:1">+</button></div>
+        <div class="unit">किती आहेत? (${s.unit==="ha"?"एकर":"नग"})</div>` : ""}
+    </div>`;
+  }).join("");
+  return `<div class="card"><p class="q">गावात पाण्याची कोणती कामे आहेत?</p>
+    <p class="sub">जी कामे गावात आहेत ती निवडा आणि किती आहेत ते सांगा. क्षमता, साठा असे काही विचारले जाणार नाही.</p></div>${cards}`;
+}
+
+function step5(){
+  const list = M.structs.filter(s=>(+((V.structs[s.k]||{}).n)||0) > 0);
+  if (!list.length) return `<div class="card"><p class="q">कामांची स्थिती कशी आहे?</p>
+    <p class="sub">मागच्या पानावर एकही काम निवडलेले नाही, त्यामुळे इथे काही विचारायचे नाही.</p></div>`;
+  return `<div class="card"><p class="q">कामांची स्थिती कशी आहे?</p>
+    <p class="sub">जे काम गाळाने भरले आहे किंवा फुटले आहे, त्यात पाणी कमी साठते.</p></div>` +
+    list.map(s=>{
+      const ex = V.structs[s.k];
+      const opts = [["good","🟢 चांगली"],["mod","🟡 गाळ भरलेले"],["poor","🔴 दुरुस्ती हवी"]];
+      return `<div class="card" style="padding:12px 14px;margin-bottom:10px">
+        <b>${s.em} ${s.mr} — ${n0(ex.n)}</b>
+        <div class="cond">${opts.map(o=>`<button type="button" data-cond="${s.k}:${o[0]}" aria-pressed="${ex.cond===o[0]}">${o[1]}</button>`).join("")}</div>
+      </div>`;
+    }).join("");
+}
+
+function step6(){
+  const opts = [["good","🟢 चांगला पाऊस","नेहमीपेक्षा जास्त"],["normal","🔵 सामान्य पाऊस","दरवर्षीसारखा"],["low","🟠 कमी पाऊस","पाऊस कमी पडला तर"]];
+  return `<div class="card"><p class="q">पावसाचे वर्ष कसे आहे?</p>
+   <p class="sub">कोणत्या वर्षासाठी नियोजन करायचे ते निवडा.</p>
+   <div class="pick">${opts.map(o=>`<button type="button" data-scen="${o[0]}" aria-pressed="${V.rainScen===o[0] && !V.rainCustom}">
+     <span class="em">${o[1].slice(0,2)}</span><span>${o[1].slice(2)}<br><span class="unit">${o[2]}</span></span></button>`).join("")}</div>
+   <div class="flow"><div>या वर्षाचा धरलेला पाऊस <b>${n0(rainfallMm())} मिमी</b>${V.rainCustom?" (स्वतःचा आकडा)":""}</div></div>
+   <details><summary>पाऊस मिमी माहीत असल्यास बदला</summary><div class="body">
+     <label class="f"><span>या वर्षीचा पाऊस (मिमी) — रिकामे ठेवल्यास वरचा अंदाज वापरला जाईल</span>
+     <input type="number" inputmode="numeric" data-v="rainCustom" value="${V.rainCustom||""}"></label>
+     <button class="btn small ghost" type="button" id="clearRain">स्वतःचा आकडा काढा</button>
+   </div></details></div>`;
+}
+
+/* ---- result + planning ---- */
+function headerCard(){
+  const base = baseRun(), now = engine(P);
+  const val = validate();
+  const need = needOf();
+  const hasPlan = planActive();
+  const delta = d => (d>=0?"+":"−")+nf(Math.abs(d),1);
+  let status, cls;
+  if (now.balance >= need && need > 0){ status = "🟢 तूट भरून निघाली आणि सुरक्षित शिल्लकही तयार झाली"; cls="ok"; }
+  else if (now.balance >= 0){ status = "🟢 तूट भरून निघाली"; cls="ok"; }
+  else if (now.balance > base.balance){ status = "🟡 तूट कमी होत आहे — अजून "+water(-now.balance)+" कमी आहे"; cls="mid"; }
+  else { status = "🔴 गावाला अजून "+water(-now.balance)+" पाण्याची गरज आहे"; cls="bad"; }
+  return `
+  ${val.errors.length ? `<div class="err"><b>ताळेबंद तयार होऊ शकत नाही:</b><br>${val.errors.join("<br>")}</div>` : ""}
+  <h1>गावाचा पाण्याचा ताळेबंद</h1>
+  <div class="unit">${V.name||"गाव"} · ${V.taluka} · ${V.district} · ${n0(rainfallMm())} मिमी पाऊस</div>
+  <div class="grid2" style="margin-top:12px">
+    <div><div class="unit">उपलब्ध पाणी${hasPlan?" (कामांनंतर)":""}</div><div class="big" style="color:var(--water)">${nf(now.available,1)}</div><div class="unit">कोटी लिटर${hasPlan?" · कामांपूर्वी "+nf(base.available,1)+" ("+delta(now.available-base.available)+")":""}</div></div>
+    <div><div class="unit">लागणारे पाणी${hasPlan?" (कामांनंतर)":""}</div><div class="big">${nf(now.demand,1)}</div><div class="unit">कोटी लिटर${hasPlan?" · कामांपूर्वी "+nf(base.demand,1)+" ("+delta(now.demand-base.demand)+")":""}</div></div>
+  </div>
+  ${hasPlan?`<div class="note">निवडलेल्या कामांमुळे आकडे बदलले आहेत: नवीन बंधारे/तलाव/दुरुस्तीमुळे <b>उपलब्ध पाणी वाढते</b>, तर ठिबक, आच्छादन, कमी कालावधीचे वाण व पीक बदलामुळे <b>लागणारे पाणी कमी होते</b>. मूळ आकडे पाहण्यासाठी "सर्व काढून टाका" दाबा.</div>`:""}
+  <div class="status ${cls}">${status}</div>
+  <div class="unit">${now.balance>=0 ? "गावाच्या गरजेपेक्षा "+water(now.balance)+" पाणी जास्त उपलब्ध आहे."
+    : "म्हणजे ५,००० लिटरचे सुमारे "+tankers(now.balance)+" इतके पाणी कमी पडते."}</div>
+  ${hasPlan
+    ? `<div class="unit" style="margin-top:6px">(वरील आकडे निवडलेल्या कामांसह आहेत. कामांपूर्वीची तूट ${water(base.balance)}.)</div>` : ""}
+  <div class="flow" style="margin-top:12px">
+    <div>पाऊस <b>${nf(now.rain,1)}</b></div><div class="ar">↓</div>
+    <div>जमिनीत गेलेले पाणी <b>${nf(now.soil,1)}</b></div>
+    <div>भूजल <b>${nf(now.gw,1)}</b></div>
+    <div>कामांनी अडवलेले पाणी <b>${nf(now.harvested,1)}</b></div><div class="ar">↓</div>
+    <div><b style="float:none">गावासाठी उपलब्ध पाणी</b><b>${nf(now.available,1)}</b></div><div class="ar">↓</div>
+    <div>पिणे <b>${nf(now.drink,2)}</b></div>
+    <div>उद्योग <b>${nf(now.industry,2)}</b></div>
+    <div>शेती <b>${nf(now.cropNeed,1)}</b></div><div class="ar">↓</div>
+    <div><b style="float:none">${now.balance>=0?"शिल्लक":"तूट"}</b><b style="color:${now.balance>=0?"var(--good)":"var(--bad)"}">${nf(now.balance,1)}</b></div>
+  </div>
+  <div class="flow" style="margin-top:8px">
+    <div>मृद व जलसंधारण कामांसाठी उपलब्ध क्षेत्र (वन, पडीक, गायरान) <b>${n0(treatOf(V))} हे.</b></div>
+    <div>लागवडीखालील क्षेत्र (बागायत + जिरायत) <b>${n0(sownOf(V))} हे.</b></div>
+    <div>सध्या पिकांखाली नोंदवलेले क्षेत्र <b>${n0(now.totalHa)} हे.</b></div>
+    <div>वाहून जाणाऱ्या पाण्याचे प्रमाण <b>${nf(now.sh.runoff,0)}% · ${now.sh.note}</b></div>
+  </div>
+  <div class="unit">सर्व आकडे कोटी लिटरमध्ये. हा गाव पातळीवरील नियोजनासाठी तयार केलेला अंदाज आहे.</div>`;
+}
+
+function renderResult(){
+  const a = $("#app");
+  a.innerHTML = `
+  <div class="card" id="hdrCard">${headerCard()}</div>
+  <div class="card">
+    <p class="q">तूट भरून काढण्यासाठी कामे निवडा</p>
+    <p class="sub">स्लायडर सरकवा. प्रत्येक कामातून किती पाणी मिळेल आणि किती खर्च येईल ते लगेच दिसेल.</p>
+    <div class="pkg">
+      <button type="button" data-pkg="low">💰 कमी खर्चाचा पर्याय</button>
+      <button type="button" data-pkg="balanced">⚖️ संतुलित पर्याय</button>
+      <button type="button" data-pkg="security">🛡️ जास्त जलसुरक्षितता पर्याय</button>
+      <button type="button" data-pkg="clear" class="noprint">↺ सर्व काढून टाका</button>
+    </div>
+    <div class="sl"><div class="head"><span class="name">किती सुरक्षित शिल्लक हवी?</span><span class="val" id="vMargin"></span></div>
+      <input type="range" id="slMargin" min="0" max="20" step="5" value="${P.margin}"></div>
+    <div class="sl"><div class="head"><span class="name">गावासाठी उपलब्ध बजेट</span><span class="val" id="vBudget"></span></div>
+      <input type="range" id="slBudget" min="500000" max="20000000" step="500000" value="${P.budget}"></div>
+    <div class="flow" id="live"></div>
+    <div id="slots"></div>
+    <div id="liveVal"></div>
+  </div>
+
+  <div class="card">
+    <p class="q">तूट किती भरली आणि कोणत्या कामातून</p>
+    <div id="chart"></div>
+  </div>
+
+  <div class="card"><div id="gapAdvice"></div>
+    <h2 style="margin-top:14px">निवडलेल्या सर्व कामांचा खर्च</h2>
+    <div class="tscroll"><table>
+      <thead><tr><th>काम</th><th class="num">प्रमाण</th><th class="num">पाण्याचा फायदा</th><th class="num">अंदाजे खर्च</th></tr></thead>
+      <tbody id="tbl"></tbody></table></div>
+    <div class="note">हा “अंदाजे खर्च” आहे. प्रत्यक्ष अंदाजपत्रक जिल्हा दरसूची (SoR) प्रमाणे तांत्रिक विभागाकडून करावे.</div>
+    <div class="note">तळातील (वाहून जाणारे) पाणी संपल्यानंतरची कामे पाणी वाढवत नाहीत, पण त्यांचा खर्च वरील एकूण खर्चात धरलेला आहे.</div>
+    <div class="note">प्रत्येक कामाचा वैयक्तिक फायदा श्रेणीबद्ध (ridge → nala → field) क्रमाने मोजला आहे; वाहून जाणारे पाणी सामायिक असल्याने हा हिशेब बेरीज करण्यायोग्य (additive) आहे — म्हणून वैयक्तिक आकड्यांची बेरीज = एकूण निव्वळ फायदा.</div>
+  </div>`;
+
+  const slots = $("#slots");
+  slots.innerHTML = measures().map(m=>`
+    <div class="sl ${m.kind==="save"?"save":""} ${m.blocked?"blocked":""}">
+      <div class="head"><span class="name">${m.em} ${m.name}</span><span class="val" id="v_${sid(m.id)}"></span></div>
+      <input type="range" data-m="${m.id}" min="0" max="${m.max}" step="${m.step}" value="${m.get()}" ${m.blocked?"disabled":""}>
+      <div class="meta"><span class="gain" id="g_${sid(m.id)}"></span><span id="c_${sid(m.id)}"></span></div>
+      ${m.blocked ? `<div class="limit">गावात यासाठी जागा उपलब्ध नाही</div>`
+        : (m.why ? `<div class="limit">मर्यादा: ${m.why}</div>` : "")}
+    </div>`).join("");
+  slots.querySelectorAll("input[type=range]").forEach(r=>{
+    r.oninput = ()=>{ const m = measures().find(x=>x.id===r.dataset.m); if (m){ m.set(+r.value); live(); } };
+    r.onchange = ()=> save();
+  });
+  $("#slMargin").oninput = e=>{ P.margin = +e.target.value; live(); };
+  $("#slMargin").onchange = ()=> save();
+  $("#slBudget").oninput = e=>{ P.budget = +e.target.value; live(); };
+  $("#slBudget").onchange = ()=> save();
+  a.querySelectorAll("[data-pkg]").forEach(b=> b.onclick = ()=>{
+    if (b.dataset.pkg === "clear"){ Object.assign(P, EMPTY()); save(); renderResult(); }
+    else { const old = b.textContent; b.textContent = "गणना सुरू आहे…"; b.disabled = true;
+      setTimeout(()=>{ buildPackage(b.dataset.pkg); }, 30); }
+    window.scrollTo(0, document.body.scrollHeight*0.35);
+  });
+
+  $("#nav").innerHTML = `<button class="btn ghost" id="back">माहिती बदला</button>
+    <button class="btn" id="rep">गावाचा फलक</button>`;
+  $("#back").onclick = ()=>{ UI.screen="wizard"; UI.step=1; render(); window.scrollTo(0,0); };
+  $("#rep").onclick = ()=>{ UI.screen="board"; render(); window.scrollTo(0,0); };
+  live();
+}
+
+const _live = function(){
+  const base = baseRun(), now = engine(P);
+  const cost = planCost(P), need = needOf();
+  $("#vMargin").textContent = n0(P.margin)+"%";
+  $("#vBudget").textContent = money(P.budget);
+
+  const ms = measures();
+  // additive attribution — Σ GAIN === net delta (now.balance − base.balance)
+  const { GAIN, gained } = waterAttribution();
+  const COST = {};
+  ms.forEach(m=>{ if ((+m.get()||0) > 0) COST[m.id] = measureCost(m); });
+
+  let rows = "";
+  ms.forEach(m=>{
+    const v = +m.get()||0;
+    const vEl = $("#v_"+sid(m.id)), gEl = $("#g_"+sid(m.id)), cEl = $("#c_"+sid(m.id));
+    if (vEl) vEl.textContent = n0(v) + (m.unit==="%" ? "%" : " "+m.unit);
+    const g = GAIN[m.id] || 0, c = COST[m.id] || 0;
+    // every selected work appears in the total table, even if it adds 0 water
+    if (v > 0){
+      const gCell = g > 0.0005
+        ? `<span style="color:var(--good)">+${water(g)}</span>`
+        : `<span class="unit">पाणी वाढत नाही</span>`;
+      rows += `<tr><td>${m.name}</td><td class="num">${n0(v)} ${m.unit==="%"?"%":m.unit}</td>
+        <td class="num">${gCell}</td><td class="num">${c>0?money(c):"–"}</td></tr>`;
+    }
+    if (gEl){
+      if (g > 0.0005){ gEl.textContent = "+"+water(g); gEl.style.color = "var(--good)"; }
+      else if (v > 0){ gEl.textContent = m.kind === "add" ? "वाहून येणारे पाणी संपले" : "यातून बचत होत नाही";
+        gEl.style.color = "var(--muted)"; }
+      else { gEl.textContent = ""; }
+    }
+    if (cEl) cEl.textContent = v>0 && c>0 ? money(c) : "";
+  });
+  const tbl = $("#tbl");
+  if (tbl) tbl.innerHTML = rows ? rows + `<tr class="total"><td>एकूण</td><td></td>
+      <td class="num">+${water(gained)}</td><td class="num">${money(cost)}</td></tr>`
+    : `<tr><td colspan="4">अद्याप कोणतेही काम निवडलेले नाही.</td></tr>`;
+
+  const over = cost > P.budget;
+  $("#live").innerHTML = `
+    <div>आधीची तूट <b style="color:var(--bad)">${base.balance<0?water(base.balance):"तूट नाही"}</b></div>
+    <div>निवडलेल्या कामांतून मिळणारे पाणी <b style="color:var(--good)">+${water(gained)}</b></div>
+    <div>${now.balance<0?"उरलेली तूट":"शिल्लक"} <b style="color:${now.balance<0?"var(--bad)":"var(--good)"}">${water(now.balance)}</b></div>
+    <div>सुरक्षित शिल्लक हवी <b>${water(need)}</b></div>
+    <div>अंदाजे खर्च <b>${money(cost)}</b></div>
+    <div>बजेटमधून शिल्लक <b style="color:${over?"var(--bad)":"var(--good)"}">${money(P.budget-cost)}</b></div>
+    ${over?'<div style="color:var(--bad)"><b style="float:none">निवडलेल्या कामांचा खर्च बजेटपेक्षा जास्त आहे.</b></div>':""}`;
+
+  const hdr = $("#hdrCard"); if (hdr) hdr.innerHTML = headerCard();
+  const val = validate();
+  const lv = $("#liveVal");
+  if (lv) lv.innerHTML = (val.errors.length ? `<div class="err"><b>तपासा:</b><br>${val.errors.join("<br>")}</div>` : "")
+    + (val.warnings.length ? `<div class="note">${val.warnings.join("<br>")}</div>` : "");
+  advice(base, now, need, cost);
+  chart(ms, base, need, GAIN, COST);
+};
+const live = debounce(_live, 60);
+
+function advice(base, now, need, cost){
+  const box = $("#gapAdvice"); if (!box) return;
+  if (now.balance >= need){
+    box.innerHTML = `<div class="status ok">🟢 निवडलेल्या कामांनी गरज भागते. अंदाजे खर्च ${money(cost)}.</div>`;
+    return;
+  }
+  const p = clone(P); let extra = 0, guard = 0; const added = {};
+  const cand = measures().map(m=>({m, v:+m.get()||0}));
+  while (guard++ < 120){
+    const cur = engine(p);
+    if (cur.balance >= need) break;
+    let best = null;
+    cand.forEach(c=>{
+      const m = c.m; if (c.v + m.step > m.max) return;
+      const trial = clone(p);
+      if (m.key==="add"){ trial.add = trial.add || {}; trial.add[m.sk] = (+trial.add[m.sk]||0)+m.step; }
+      else trial[m.key] = (+trial[m.key]||0)+m.step;
+      const gain = engine(trial).balance - cur.balance;
+      if (gain <= 0.0005) return;
+      const c2 = m.cost*m.step, ratio = c2>0 ? gain/c2 : gain*1e9;
+      if (!best || ratio > best.ratio) best = {c, m, ratio, trial, cost:c2};
+    });
+    if (!best) break;
+    best.c.v += best.m.step; extra += best.cost;
+    added[best.m.id] = (added[best.m.id]||0) + best.m.step;
+    if (best.m.key==="add"){ p.add = p.add || {}; p.add[best.m.sk] = (+p.add[best.m.sk]||0)+best.m.step; }
+    else p[best.m.key] = (+p[best.m.key]||0)+best.m.step;
+  }
+  const after = engine(p);
+  const gapWater = need - now.balance;
+  const names = Object.keys(added).map(id=>{
+    const m = measures().find(x=>x.id===id); if (!m) return "";
+    return `${m.em} ${m.name}: अजून ${n0(added[id])} ${m.unit==="%"?"%":m.unit}`;
+  }).filter(Boolean);
+  if (after.balance >= need){
+    box.innerHTML = `<div class="status ${cost>P.budget?"bad":"mid"}">
+      ${now.balance<0?"उरलेली तूट "+water(-now.balance):"सुरक्षित शिल्लक अजून तयार नाही"}</div>
+      <div class="kv"><span>अजून लागणारे पाणी</span><b>${water(gapWater)}</b></div>
+      <div class="kv"><span>अजून लागणारा अंदाजे खर्च</span><b>${money(extra)}</b></div>
+      <div class="kv sum"><span>एकूण अंदाजे खर्च</span><b>${money(cost+extra)}</b></div>
+      <div class="note">पर्याय: ${names.join(" · ")}</div>
+      ${cost+extra > P.budget ? `<div class="err">दिलेल्या ${money(P.budget)} बजेटमध्ये तूट पूर्ण भरून निघत नाही. अजून ${money(cost+extra-P.budget)} लागतील.</div>`:""}`;
+  } else {
+    box.innerHTML = `<div class="status bad">गावातील सर्व शक्य कामे केली तरी ${water(need-after.balance)} तूट राहते.</div>
+      <div class="note">पाणी वाहून येण्याचे प्रमाण आणि कामांची मर्यादा यामुळे इथून पुढे साठवण वाढत नाही.
+      पिकांची पाण्याची गरज कमी करणे (ठिबक, कमी पाण्याची पिके, उन्हाळी क्षेत्र कमी) हाच उरलेला मार्ग आहे.</div>`;
+  }
+}
+
+function chart(ms, base, need, GAIN, COST){
+  const box = document.querySelector("#chart"); if (!box) return;
+  const rows = [];
+  ms.forEach(m=>{
+    const g = GAIN[m.id]||0; if (g <= 0.004) return;
+    rows.push({m, g, c: COST[m.id]||0, v: +m.get()||0});
+  });
+  rows.sort((a,b)=>b.g-a.g);
+
+  const gap = Math.max(0, need - base.balance);
+  const filled = rows.reduce((a,r)=>a+r.g, 0);
+
+  if (!rows.length){
+    box.innerHTML = `<p class="hint" style="margin:0">अजून कोणतेही काम निवडलेले नाही. वरचे स्लायडर सरकवा किंवा पर्याय बटण दाबा —
+      इथे प्रत्येक कामातून किती पाणी मिळते आणि किती खर्च येतो ते दिसेल.</p>`;
+    return;
+  }
+
+  const COLORS = ["#1C6CA8","#3F7A34","#C98A12","#0F4C75","#7A5AA8","#2E8B8B","#A2622B","#5B8C2A"];
+  let segs = "", acc = 0;
+  const scale = gap > 0 ? gap : filled;
+  rows.forEach((r,i)=>{
+    const pct = scale>0 ? Math.min(100, r.g/scale*100) : 0;
+    acc += pct;
+    segs += `<span style="width:${pct}%;background:${COLORS[i%COLORS.length]}" title="${r.m.name}">${pct>14?r.m.em:""}</span>`;
+  });
+  const restPct = Math.max(0, 100 - acc);
+  if (restPct > 0.5) segs += `<span class="rest" style="width:${restPct}%">${restPct>18?"बाकी तूट":""}</span>`;
+  const pctDone = gap>0 ? Math.min(100, Math.round(filled/gap*100)) : 100;
+
+  const maxG = rows[0].g;
+  let best = null;
+  rows.forEach(r=>{ if (r.c > 0){ const rate = r.c/r.g; if (!best || rate < best.rate) best = {id:r.m.id, rate}; } });
+  const body = rows.map(r=>{
+    const w = Math.max(6, r.g/maxG*100);
+    const free = r.c <= 0;
+    const isBest = best && best.id === r.m.id;
+    const rate = free ? "पैसे लागत नाहीत — फक्त ठरवायचे आहे"
+      : "१ कोटी लिटर पाण्यासाठी " + money(r.c/r.g);
+    return `<div class="mrow ${free?"free":""} ${isBest?"best":""}">
+      <div class="mtop"><span class="mname">${r.m.em} ${r.m.name} — ${n0(r.v)} ${r.m.unit==="%"?"%":r.m.unit}</span>
+        <span class="mwater">${water(r.g)}</span></div>
+      <div class="mbar"><span class="track"><i style="width:${w}%"></i></span>
+        <span class="cost">${free ? "₹ ०" : money(r.c)}</span></div>
+      <div class="mrate">${isBest?"⭐ सर्वात स्वस्त पाणी · ":""}${rate}</div>
+    </div>`;
+  }).join("");
+
+  box.innerHTML = `
+    <div class="gapwrap">
+      <div class="gapbar">${segs}</div>
+      <div class="gaplbl"><span>भरलेली तूट ${n0(pctDone)}%</span>
+        <span>${gap>0 ? "एकूण भरायची तूट "+water(gap) : "तूट नाही"}</span></div>
+    </div>
+    <div class="unit" style="margin-bottom:4px">निळा पट्टा = मिळणारे पाणी · उजवीकडे = अंदाजे खर्च</div>
+    ${body}
+    <div class="chartnote">जेवढा पट्टा लांब, तेवढे पाणी जास्त. हिरवा पट्टा म्हणजे खर्चाशिवाय मिळणारे पाणी — पीक बदल, कमी कालावधीचे वाण असे निर्णय.</div>`;
+}
+
+/* ---- village board ---- */
+function boardHTML(blank){
+  const now = engine(P);
+  const mm = rainfallMm();
+  const sh = now.sh;
+  const b = x => blank ? "" : x;
+  const W = 'class="n w"';
+
+  let worksRows = "", effTotal = 0;
+  M.structs.forEach(s2=>{
+    const ex = V.structs[s2.k] || {n:0, cond:"good"};
+    const conv = s2.unit === "ha" ? 0.4047 : 1;
+    const units = (+ex.n||0);
+    const condF = M.cond[ex.cond] !== undefined ? M.cond[ex.cond] : 1;
+    const cap = units*conv*s2.cap, act = units*conv*s2.act*condF;
+    const eff = act*s2.fills/10000; effTotal += eff;
+    worksRows += `<tr><td>${s2.mr}</td><td ${W}>${b(units?n0(units):"")}</td>
+      <td ${W}>${b(cap?n0(cap):"")}</td><td ${W}>${b(act?n0(act):"")}</td>
+      <td ${W}>${s2.fills}</td><td ${W}>${b(eff?nf(eff,2):"")}</td></tr>`;
+  });
+
+  const dr = [["मनुष्य", V.pop, M.norms.person, now.drinkPeople],
+              ["मोठी जनावरे", V.large, M.norms.large, now.drinkLarge],
+              ["लहान जनावरे", V.small, M.norms.small, now.drinkSmall],
+              ["पक्षी (कोंबडी)", V.birds, M.norms.bird, now.drinkBirds]];
+  const drinkRows = dr.map(r=>`<tr><td>${r[0]}</td><td ${W}>${b(r[1]?n0(r[1]):"")}</td>
+    <td ${W}>${n0(r[2])}</td><td ${W}>३६५</td><td ${W}>${b(r[3]>0?nf(r[3],2):"")}</td></tr>`).join("");
+
+  const seasons = [["kharif","अ) खरीप पिके"],["rabi","ब) रब्बी पिके"],["summer","क) उन्हाळी पिके"],["perennial","ड) बारमाही पिके"]];
+  let cropTables = "", cropTablesB = "";
+  seasons.forEach(([sk, title])=>{
+    let rows = "", tot = 0;
+    M.crops.forEach(c=>{
+      const e = V.crops[c.k];
+      const season = e ? (e.season||c.season) : c.season;
+      if (season !== sk) return;
+      const ha = e ? haOf(e) : 0, use = e ? (now.perCrop[c.k]||0) : 0;
+      tot += use;
+      rows += `<tr><td>${c.mr}</td><td ${W}>${b(ha?nf(ha,1):"")}</td><td ${W}>${nf(c.rate,2)}</td><td ${W}>${b(use>0.004?nf(use,2):"")}</td></tr>`;
+    });
+    if (sk === "summer" && !rows){
+      [["उन्हाळी भुईमूग",0.40],["उन्हाळी भाजीपाला",0.90],["चारा पिके",0.70],["इतर",0.50]].forEach(r=>{
+        rows += `<tr><td>${r[0]}</td><td ${W}></td><td ${W}>${nf(r[1],2)}</td><td ${W}></td></tr>`;
+      });
+    }
+    if (!rows) return;
+    const html = `<table><caption>${title}</caption>
+      <thead><tr><th>पिकाचे नाव</th><th>क्षेत्रफळ (हे.)</th><th>हेक्टरसाठी पाणी<br>(कोटी लि.)</th><th>पाण्याचा वापर<br>(कोटी लि.)</th></tr></thead>
+      <tbody>${rows}<tr><td><b>एकूण</b></td><td></td><td></td><td ${W}><b>${b(tot>0.004?nf(tot,2):"")}</b></td></tr></tbody></table>`;
+    if (sk === "summer" || sk === "perennial") cropTablesB += html; else cropTables += html;
+  });
+
+  const capNote = M.structs.map(s2=>`${s2.mr} ${n0(s2.act)}`).join(" · ");
+  return `<div class="board ${blank?"blank":""}">
+    <div class="bhead"><h1><svg class="blogo" viewBox="0 0 48 48" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M24 3.5C24 3.5 9.5 19.5 9.5 29.5a14.5 14.5 0 0 0 29 0C38.5 19.5 24 3.5 24 3.5Z" stroke-width="2.4"/><path d="M24 19v19M13.5 24h21" stroke-width="1.9"/><path d="M13.5 24 9.6 31a4.3 4.3 0 0 0 7.8 0Z" stroke-width="1.6"/><path d="M34.5 24 30.6 31a4.3 4.3 0 0 0 7.8 0Z" stroke-width="1.6"/><path d="M19.5 38h9" stroke-width="1.9"/></g><circle cx="24" cy="19" r="2.2" fill="currentColor"/></svg>गावाचा पाण्याचा ताळेबंद</h1>
+      <div style="font-size:11px;letter-spacing:.5px">जलदर्पण — गावाचे पाणी, गावाच्या हातात</div>
+      <div>गावाचे नाव: <b>${blank?"______________":(V.name||"—")}</b> &nbsp; ग्रा.पं.: <b>${blank?"__________":(V.gp||"—")}</b> &nbsp; तालुका: <b>${blank?"__________":V.taluka}</b>
+      &nbsp; जिल्हा: <b>${blank?"__________":V.district}</b> &nbsp; वर्ष: <b>${blank?"__________":new Date().getFullYear()}</b></div></div>
+    <div class="cols">
+      <div>
+        <table><caption>१. गावात उपलब्ध होणारे पावसाचे एकूण पाणी</caption>
+          <tr><td>गावाचे क्षेत्रफळ (हेक्टर)</td><td ${W}>${b(V.area?n0(V.area):"")}</td></tr>
+          <tr><td>× पडणारा पाऊस (मिमी)</td><td ${W}>${b(mm?n0(mm):"")}</td></tr>
+          <tr><td>÷ १,००० = <b>एकूण पाणी (कोटी लिटर)</b></td><td ${W}><b>${b(now.rain?nf(now.rain,2):"")}</b></td></tr>
+        </table>
+        <table><caption>२. पडलेल्या पावसाच्या पाण्याचे विभाजन</caption>
+          <thead><tr><th>घटक</th><th>%</th><th>कोटी लिटर</th></tr></thead>
+          <tr><td>अ) मातीचा ओलावा</td><td class="n">${nf(sh.soil,0)}</td><td ${W}>${b(nf(now.soil,2))}</td></tr>
+          <tr><td>आ) भूजल</td><td class="n">${nf(sh.gw,0)}</td><td ${W}>${b(nf(now.gw,2))}</td></tr>
+          <tr><td>इ) वाहून जाणारे पाणी</td><td class="n">${nf(sh.runoff,0)}</td><td ${W}>${b(nf(now.runoff,2))}</td></tr>
+          <tr><td>ई) बाष्पीभवन</td><td class="n">${nf(sh.evap,0)}</td><td ${W}>${b(nf(now.evap,2))}</td></tr>
+        </table>
+        <table><caption>३. जलसंधारण कामांमुळे अडविण्यात आलेले पाणी</caption>
+          <thead><tr><th>कामाचे नाव</th><th>झालेली कामे<br>(संख्या / हे.)</th><th>एकूण साठवण<br>क्षमता (घ.मी.)</th>
+            <th>प्रत्यक्ष होणारा<br>जलसाठा (घ.मी.)</th><th>भरण<br>संख्या</th><th>प्रभावी साठवण<br>(कोटी लि.)</th></tr></thead>
+          <tbody>${worksRows}
+            <tr><td><b>एकूण</b></td><td></td><td></td><td></td><td></td><td ${W}><b>${b(effTotal?nf(Math.min(effTotal, now.runoff),2):"")}</b></td></tr></tbody>
+        </table>
+        <div class="foot" style="margin:-4px 0 8px">विभाजनाची पद्धत: ${sh.note}</div>
+        <div class="foot" style="margin-bottom:8px">एका कामाचा सर्वसाधारण प्रत्यक्ष जलसाठा (घ.मी.): ${capNote}. प्रभावी साठवण = प्रत्यक्ष जलसाठा × भरण संख्या ÷ १०,०००. अडविलेले पाणी वाहून जाणाऱ्या पाण्यापेक्षा जास्त धरू नये.</div>
+        <table><caption>४. गावात वापरासाठी उपलब्ध होणारे एकूण पाणी</caption>
+          <tr><td>मातीचा ओलावा</td><td ${W}>${b(nf(now.soil,2))}</td></tr>
+          <tr><td>+ भूजल</td><td ${W}>${b(nf(now.gw,2))}</td></tr>
+          <tr><td>+ कामांनी अडविलेले पाणी</td><td ${W}>${b(nf(now.harvested,2))}</td></tr>
+          <tr><td><b>= वापरासाठी उपलब्ध पाणी (कोटी लि.)</b></td><td ${W}><b>${b(nf(now.available,2))}</b></td></tr>
+        </table>
+      </div>
+      <div>
+        <table><caption>५. पिण्यासाठी लागणारे पाणी</caption>
+          <thead><tr><th>वापर</th><th>एकूण संख्या</th><th>प्रतिदिन<br>लिटर</th><th>दिवस</th><th>कोटी लिटर</th></tr></thead>
+          <tbody>${drinkRows}
+          <tr><td><b>एकूण पिण्यासाठी</b></td><td></td><td></td><td></td><td ${W}><b>${b(nf(now.drink,2))}</b></td></tr>
+          <tr><td>उद्योग व्यवसायासाठी</td><td></td><td></td><td></td><td ${W}>${b(nf(now.industry,2))}</td></tr></tbody>
+        </table>
+        <div style="font-weight:700;font-size:13px;margin:6px 0 2px">६. पीक पद्धत आणि पाण्याचा वापर</div>
+        ${cropTables}
+      </div>
+      <div>
+        <table><caption>७. पिकांसाठी शिल्लक राहणारे पाणी</caption>
+          <tr><td>वापरासाठी उपलब्ध पाणी</td><td ${W}>${b(nf(now.available,2))}</td></tr>
+          <tr><td>− पिण्यासाठी</td><td ${W}>${b(nf(now.drink,2))}</td></tr>
+          <tr><td>− उद्योग</td><td ${W}>${b(nf(now.industry,2))}</td></tr>
+          <tr><td><b>= पिकांसाठी शिल्लक (कोटी लि.)</b></td><td ${W}><b>${b(nf(now.available-now.drink-now.industry,2))}</b></td></tr>
+        </table>
+        <div class="sumbox"><span>सर्व हंगामातील पिकांची पाण्याची गरज</span><span>${b(nf(now.cropNeed,2))} कोटी लिटर</span></div>
+        <div class="sumbox" style="border-width:3px"><span>पाण्याचा ताळेबंद (शिल्लक − गरज)</span>
+          <span>${b((now.balance>=0?"+":"−")+nf(Math.abs(now.balance),2))} कोटी लिटर</span></div>
+        ${cropTablesB}
+        ${planTable(blank)}
+        <div class="foot"><b>गावात ${blank?"__________":nf(Math.abs(now.balance),2)} कोटी लिटर पाण्याची ${blank?"तूट / शिल्लक आहे":(now.balance>=0?"शिल्लक आहे":"तूट आहे")}.</b>
+          १ कोटी लिटर = १०,००० घनमीटर = ५,००० लिटरचे २,००० टँकर.<br>
+          हा गाव पातळीवरील नियोजनासाठी तयार केलेला अंदाज आहे. अंतिम DPR साठी तांत्रिक विभागाची पडताळणी आवश्यक आहे.
+          <div class="bcredit">जलदर्पण · हे साधन तयार केले: जितेंद्र सोनवणे, कृषी अभियंता · ७७२००४५८०८</div></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* section ८ — additive attribution so the printed total equals the
+   result screen's total, and the printed cost equals planCost(P) */
+function planTable(blank){
+  let rows = "", totC = 0;
+  let totW = 0;
+  if (!blank){
+    const { GAIN, gained } = waterAttribution();
+    measures().forEach(m=>{
+      const v = +m.get()||0; if (!v) return;
+      const g = GAIN[m.id] || 0;
+      const c = measureCost(m);
+      totC += c;
+      rows += `<tr><td>${m.name}</td><td class="n">${n0(v)} ${m.unit==="%"?"%":m.unit}</td>
+        <td class="n">${nf(g,2)}</td><td class="n">${c>0?moneyL(c):"–"}</td></tr>`;
+    });
+    // numerical guard — the displayed total is the engine's net delta
+    totW = gained;
+  }
+  if (!rows) for (let i=0;i<4;i++) rows += `<tr><td class="w"></td><td class="n w"></td><td class="n w"></td><td class="n w"></td></tr>`;
+  return `<table style="margin-top:8px"><caption>८. तूट भरून काढण्यासाठी प्रस्तावित कामे</caption>
+    <thead><tr><th>काम</th><th>प्रमाण</th><th>मिळणारे पाणी<br>(कोटी लि.)</th><th>अंदाजे खर्च (₹)</th></tr></thead>
+    <tbody>${rows}<tr><td><b>एकूण</b></td><td></td><td class="n"><b>${blank||!totW?"":nf(totW,2)}</b></td>
+      <td class="n"><b>${blank||!totC?"":moneyL(totC)}</b></td></tr></tbody></table>`;
+}
+
+const PAPER = { A4:[297,210], A3:[420,297], A2:[594,420] };
+function fitBoard(paper){
+  const el = document.querySelector(".board"); if (!el) return 1;
+  const [pw, ph] = PAPER[paper] || PAPER.A3;
+  const mm = 96/25.4, margin = 6;
+  const cw = (pw - margin*2)*mm, ch = (ph - margin*2)*mm;
+  const target = cw/ch;
+
+  const keepW = el.style.width, keepMin = el.style.minWidth, keepT = el.style.transform;
+  el.style.transform = "none";
+  let lo = 700, hi = Math.max(3200, cw*1.2), w = 1120, h = el.scrollHeight;
+  for (let i = 0; i < 14; i++){
+    w = (lo + hi)/2;
+    el.style.width = w+"px"; el.style.minWidth = w+"px";
+    h = el.scrollHeight;
+    if (w/h < target) lo = w; else hi = w;
+  }
+  w = hi; el.style.width = w+"px"; el.style.minWidth = w+"px"; h = el.scrollHeight;
+  const k = Math.min(cw/w, ch/h) * 0.995;
+  el.style.width = keepW; el.style.minWidth = keepMin; el.style.transform = keepT || "";
+  document.getElementById("pagecss").textContent = `
+    @page{ size:${pw}mm ${ph}mm; margin:${margin}mm }
+    @media print{
+      .board{ transform:scale(${k}); transform-origin:top left; width:${w}px; min-width:${w}px; max-width:none }
+      .board-wrap{ width:${Math.floor(w*k)}px; height:${Math.floor(h*k)}px; overflow:hidden;
+        padding:0!important; border:0!important; margin:0!important; page-break-after:avoid; break-after:avoid }
+      .wrap{ padding:0!important; margin:0!important; max-width:none }
+      html,body{ width:auto; height:auto; margin:0; padding:0; overflow:hidden }
+    }`;
+  return k;
+}
+window.__fitBoard = fitBoard;
+
+function printBoard(){ fitBoard(UI.paper || "A3"); setTimeout(()=>window.print(), 80); }
+
+function renderBoard(){
+  $("#app").innerHTML = `<div class="card noprint"><p class="q">गावाचा फलक</p>
+      <p class="sub">${UI.blank ? "कोरा फलक — गावात लावण्यासाठी. गावकरी स्वतः आकडे लिहू शकतात. प्रमाण, दर व सूत्रे आधीच छापलेली आहेत."
+        : "भरलेला फलक — ॲपमधील माहितीप्रमाणे. छापून फलकावर उतरवता येईल."}</p>
+      <p class="sub" style="margin-top:-6px">कागदाचा आकार निवडा — फलक आपोआप एकाच आडव्या पानावर बसवला जातो. प्रिंट पडद्यावर Landscape व "Margins: Default" ठेवा.</p>
+      <div class="chips" style="margin-bottom:4px">${["A4","A3","A2"].map(pp=>
+        `<button class="chip" type="button" data-paper="${pp}" aria-pressed="${(UI.paper||"A3")===pp}">${pp} आडवा</button>`).join("")}</div>
+      <div class="pkg"><button type="button" id="tgl">${UI.blank?"भरलेला फलक दाखवा":"कोरा फलक दाखवा (लिहिण्यासाठी)"}</button>
+      <button type="button" id="prn">🖨️ छापा / PDF — एकाच पानावर</button>
+      <button type="button" id="rep2">तपशीलवार अहवाल</button></div></div>
+    <div class="card board-wrap" style="padding:10px;overflow-x:auto">${boardHTML(UI.blank)}</div>`;
+  $("#nav").innerHTML = `<button class="btn ghost" id="back">मागे</button><button class="btn" id="prn2">छापा / PDF</button>`;
+  $("#tgl").onclick = ()=>{ UI.blank = !UI.blank; renderBoard(); window.scrollTo(0,0); };
+  $("#app").querySelectorAll("[data-paper]").forEach(b=> b.onclick = ()=>{ UI.paper = b.dataset.paper; renderBoard(); });
+  $("#prn").onclick = printBoard;
+  $("#prn2").onclick = printBoard;
+  $("#rep2").onclick = ()=>{ UI.screen = "report"; render(); window.scrollTo(0,0); };
+  $("#back").onclick = ()=>{ UI.screen = "result"; render(); window.scrollTo(0,0); };
+}
+
+/* ---- detail report (A4 portrait, printable) ---- */
+function renderReport(){
+  const now = engine(P), base = baseRun(), val = validate();
+  const cost = planCost(P);
+  const need = needOf();
+  const mm = rainfallMm();
+  const seasonOrder = ["kharif","rabi","summer","perennial"];
+
+  let cropBody = "";
+  seasonOrder.forEach(se=>{
+    const keys = Object.keys(V.crops).filter(k=>((V.crops[k].season||cropDef(k).season)===se));
+    if (!keys.length) return;
+    cropBody += `<tr><td colspan="5" style="background:var(--head);font-weight:700">${seasonMr(se)}</td></tr>`;
+    let sub = 0;
+    keys.forEach(k=>{
+      const c = cropDef(k), e = V.crops[k];
+      const ha = haOf(e), use = now.perCrop[k]||0;
+      sub += use;
+      cropBody += `<tr><td>${c.mr}</td><td class="num">${nf(ha,2)}</td>
+        <td class="num">${nf(c.rate,2)}</td><td class="num">${nf(use,2)}</td>
+        <td class="num">${use>0.004?nf((use/(ha||1))*1000,0):"–"}</td></tr>`;
+    });
+    cropBody += `<tr><td><b>${seasonMr(se)} एकूण</b></td><td class="num">—</td><td class="num">—</td>
+      <td class="num"><b>${nf(sub,2)}</b></td><td class="num">—</td></tr>`;
+  });
+
+  // works: same additive attribution so the report total matches the board & result
+  let worksBody = "", totW = 0, totC = 0;
+  const { GAIN: wGAIN, gained: wGained } = waterAttribution();
+  measures().forEach(m=>{
+    const v = +m.get()||0; if (!v) return;
+    const g = wGAIN[m.id] || 0, c = measureCost(m);
+    totC += c;
+    const gCell = g > 0.0005 ? `<span style="color:var(--good)">+${nf(g,2)}</span>` : `<span class="unit">पाणी वाढत नाही</span>`;
+    worksBody += `<tr><td>${m.em} ${m.name}</td>
+      <td class="num">${n0(v)} ${m.unit==="%"?"%":m.unit}</td>
+      <td class="num">${gCell}</td>
+      <td class="num">${c>0?moneyL(c):"–"}</td></tr>`;
+  });
+  totW = wGained;
+  if (!worksBody) worksBody = `<tr><td colspan="4" style="text-align:center;color:var(--muted)">कोणतेही काम निवडलेले नाही</td></tr>`;
+
+  $("#app").innerHTML = `<div class="report card">
+    <h1 style="text-align:center">जलदर्पण — तपशीलवार पाणी ताळेबंद अहवाल</h1>
+    <div class="meta" style="text-align:center">${V.name||"—"} · ग्रा.पं. ${V.gp||"—"} · ता. ${V.taluka} · जि. ${V.district} · वर्ष ${new Date().getFullYear()}</div>
+
+    <h2>१. गावाची मूलभूत माहिती</h2>
+    <table><tbody>
+      <tr><td>एकूण भौगोलिक क्षेत्र</td><td class="num">${n0(V.area)} हे.</td>
+          <td>लोकसंख्या</td><td class="num">${n0(V.pop)}</td></tr>
+      <tr><td>वन</td><td class="num">${n0(V.forest)} हे.</td>
+          <td>मोठी जनावरे</td><td class="num">${n0(V.large)}</td></tr>
+      <tr><td>बागायत</td><td class="num">${n0(V.sownIrr)} हे.</td>
+          <td>लहान जनावरे</td><td class="num">${n0(V.small)}</td></tr>
+      <tr><td>जिरायत</td><td class="num">${n0(V.sownRain)} हे.</td>
+          <td>कोंबड्या</td><td class="num">${n0(V.birds)}</td></tr>
+      <tr><td>पडीक / गायरान / लागवडीयोग्य पडीक</td>
+          <td class="num">${n0((+V.fallow||0)+(+V.pasture||0)+(+V.waste||0))} हे.</td>
+          <td>जमिनीचा प्रकार</td><td class="num">${M.terrainName[V.terrain]||"—"}</td></tr>
+      <tr><td>पाऊस (${V.rainCustom?"स्वतःचा":"पर्याय"})</td><td class="num">${n0(mm)} मिमी</td>
+          <td>वाहून जाणारे पाणी</td><td class="num">${nf(now.sh.runoff,1)}%</td></tr>
+    </tbody></table>
+
+    <h2>२. पाण्याचा ताळेबंद</h2>
+    <table><tbody>
+      <tr><td>पडलेले एकूण पाणी</td><td class="num">${nf(now.rain,2)} कोटी लि.</td></tr>
+      <tr><td>मातीचा ओलावा (${nf(now.sh.soil,0)}%)</td><td class="num">${nf(now.soil,2)}</td></tr>
+      <tr><td>भूजल (${nf(now.sh.gw,0)}%)</td><td class="num">${nf(now.gw,2)}</td></tr>
+      <tr><td>वाहून जाणे (${nf(now.sh.runoff,0)}%)</td><td class="num">${nf(now.runoff,2)}</td></tr>
+      <tr><td>बाष्पीभवन (${nf(now.sh.evap,0)}%)</td><td class="num">${nf(now.evap,2)}</td></tr>
+      <tr><td>कामांनी अडवलेले</td><td class="num">+ ${nf(now.harvested,2)}</td></tr>
+      <tr style="font-weight:700;background:var(--head)"><td>वापरासाठी उपलब्ध</td><td class="num">${nf(now.available,2)}</td></tr>
+      <tr><td>− पिण्यासाठी</td><td class="num">${nf(now.drink,2)}</td></tr>
+      <tr><td>− उद्योग</td><td class="num">${nf(now.industry,2)}</td></tr>
+      <tr><td>− शेती</td><td class="num">${nf(now.cropNeed,2)}</td></tr>
+      <tr style="font-weight:700"><td>${now.balance>=0?"शिल्लक":"तूट"}</td>
+        <td class="num" style="color:${now.balance>=0?"var(--good)":"var(--bad)"}">${nf(now.balance,2)} कोटी लि.</td></tr>
+    </tbody></table>
+
+    <h2>३. पिकांचा तपशील</h2>
+    <table>
+      <thead><tr><th>पीक</th><th class="num">क्षेत्र (हे.)</th><th class="num">प्रति हे. (कोटी लि.)</th>
+        <th class="num">एकूण वापर (कोटी लि.)</th><th class="num">मिमी</th></tr></thead>
+      <tbody>${cropBody}
+        <tr class="total"><td>सर्व पिके एकूण</td><td class="num">${nf(now.totalHa,2)}</td><td class="num">—</td>
+          <td class="num">${nf(now.cropNeed,2)}</td><td class="num">—</td></tr>
+      </tbody></table>
+
+    <h2>४. निवडलेली कामे व खर्च</h2>
+    <table>
+      <thead><tr><th>काम</th><th class="num">प्रमाण</th><th class="num">पाण्याचा फायदा (कोटी लि.)</th>
+        <th class="num">अंदाजे खर्च (₹)</th></tr></thead>
+      <tbody>${worksBody}
+        <tr class="total"><td>एकूण</td><td></td>
+          <td class="num">+ ${nf(totW,2)}</td>
+          <td class="num">${moneyL(totC)}</td></tr>
+      </tbody></table>
+    <div class="meta">एकूण बजेट: ${money(P.budget)} · सुरक्षित शिल्लक धरली: ${n0(P.margin)}% (${nf(need,2)} कोटी लि.)</div>
+    ${val.errors.length?`<div class="err"><b>त्रुटी:</b><br>${val.errors.join("<br>")}</div>`:""}
+    ${val.warnings.length?`<div class="note"><b>सूचना:</b><br>${val.warnings.join("<br>")}</div>`:""}
+
+    <div class="sig">
+      <div>ग्रामपंचायत सचिव</div>
+      <div>ग्रामसभा ठराव</div>
+      <div>कृषी अभियंता / तांत्रिक</div>
+    </div>
+
+    <div class="meta" style="margin-top:14px;text-align:center;border-top:1px solid var(--line);padding-top:6px">
+      जलदर्पण — गावाचे पाणी, गावाच्या हातात · तयार केले: जितेंद्र सोनवणे, कृषी अभियंता · ७७२००४५८०८
+    </div>
+  </div>`;
+
+  $("#nav").innerHTML = `<button class="btn ghost" id="back">मागे</button>
+    <button class="btn" id="prn">🖨️ छापा / PDF</button>`;
+  $("#back").onclick = ()=>{ UI.screen = "board"; render(); window.scrollTo(0,0); };
+  $("#prn").onclick = ()=>{ document.getElementById("pagecss").textContent = "@page{ size:A4 portrait; margin:12mm }"; setTimeout(()=>window.print(), 60); };
+}
+
+/* ---- technical mode ---- */
+function renderTech(){
+  const tabs = [["shares","पावसाचे विभाजन"],["norms","पाण्याचे प्रमाण"],["crops","पिकांचे पाणी"],
+    ["structs","कामांची क्षमता व खर्च"],["save","बचतीचे उपाय"],["villages","गाव यादी"],["data","माहिती जतन"]];
+  let body = "";
+  if (UI.techTab === "shares"){
+    const prev = sharesFor(rainfallMm() || 750);
+    const methods = [["board","फलकाचे ठराविक प्रमाण (३०/१५/३५/२०)"],
+                     ["landuse","जमीन वापरानुसार (वन, शेती, पडीक, गायरान)"],
+                     ["strange","Strange तक्ता (पावसानुसार बदलणारे)"]];
+    body = `<div class="card"><b>वाहून जाणारे पाणी कसे ठरवायचे?</b>
+      <div class="pick">${methods.map(m=>`<button type="button" data-rm="${m[0]}" aria-pressed="${(M.runoffMethod||"board")===m[0]}">
+        <span>${m[1]}</span></button>`).join("")}</div>
+      <div class="flow"><div>सध्याच्या गावासाठी (${n0(rainfallMm()||750)} मिमी): वाहून जाणारे <b>${nf(prev.runoff,1)}%</b></div>
+        <div>मातीचा ओलावा ${nf(prev.soil,1)}% · भूजल ${nf(prev.gw,1)}% · बाष्पीभवन ${nf(prev.evap,1)}%</div>
+        <div>पद्धत <b>${prev.note}</b></div></div>
+      <p class="unit">तिन्ही पद्धतींत उरलेले ${nf(100-prev.runoff,0)}% मातीचा ओलावा, भूजल व बाष्पीभवन यांत फलकाच्या प्रमाणात वाटले जाते.</p>
+    </div>
+
+    <div class="card"><b>१. फलकाचे ठराविक प्रमाण</b>
+      <p class="unit">जमिनीच्या प्रकारानुसार. "फलकाचे ठराविक प्रमाण" पद्धत यांचा थेट वापर करते; इतर दोन पद्धतींत उरलेले पाणी वाटण्यासाठी यांचेच प्रमाण वापरले जाते.</p>
+      ${Object.keys(M.shares).map(t=>{
+        const sh2 = M.shares[t]; const sum = sh2.soil+sh2.gw+sh2.runoff+sh2.evap;
+        return `<div style="margin-top:10px"><b>${M.terrainName[t]}</b> ${sum!==100?'<span class="conf l">बेरीज '+sum+'%</span>':'<span class="conf h">१००%</span>'}
+          <div class="grid2">${["soil","gw","runoff","evap"].map(k=>`<label class="f"><span>${
+            {soil:"मातीचा ओलावा %",gw:"भूजल %",runoff:"वाहून जाणारे %",evap:"बाष्पीभवन %"}[k]}</span>
+            <input type="number" data-t="shares.${t}.${k}" value="${sh2[k]}"></label>`).join("")}</div></div>`;
+      }).join("")}
+    </div>
+
+    <div class="card"><b>२. जमीन वापरानुसार गुणांक (% वाहून जाणारे)</b>
+      <p class="unit">गावाच्या जनगणना वर्गवारीवरून सरासरी काढली जाते. वर्गवारीत न बसलेले क्षेत्र फलकाच्या प्रमाणाने धरले जाते.</p>
+      <div class="grid2">
+        ${LANDF.map(([f,lbl])=>`<label class="f"><span>${lbl}</span>
+          <input type="number" data-t="landC.${f}" value="${M.landC[f]}"></label>`).join("")}
+      </div>
+    </div>
+
+    <div class="card"><b>३. Strange तक्ता — पावसानुसार वाहून जाणारे पाणी (%)</b>
+      <div class="err" style="margin-top:6px">खालील आकडे केवळ नमुना आहेत. GSDA / जलसंधारण विभागाच्या Strange तक्त्यातील आकडे भरा आणि मगच ही पद्धत वापरा.</div>
+      <div class="tscroll"><table><thead><tr><th>पाऊस (मिमी)</th><th class="num">चांगले पाणलोट</th>
+        <th class="num">मध्यम</th><th class="num">कमी</th></tr></thead><tbody>
+        ${M.strange.map((r,i)=>`<tr>
+          <td><input style="width:80px;min-height:38px" type="number" data-t="strange.${i}.mm" value="${r.mm}"></td>
+          ${["good","average","bad"].map(c=>`<td class="num"><input style="width:74px;min-height:38px" type="number" step="0.5" data-t="strange.${i}.${c}" value="${r[c]}"></td>`).join("")}
+        </tr>`).join("")}
+      </tbody></table></div>
+      <div class="grid2" style="margin-top:10px">
+        ${Object.keys(M.terrainName).map(t=>`<label class="f"><span>${M.terrainName[t]} — पाणलोट वर्ग</span>
+          <select data-t="strangeClass.${t}">${[["good","चांगले (जास्त पाणी वाहते)"],["average","मध्यम"],["bad","कमी"]].map(c=>
+            `<option value="${c[0]}" ${(M.strangeClass[t]===c[0])?"selected":""}>${c[1]}</option>`).join("")}</select></label>`).join("")}
+      </div>
+      <div class="row" style="margin-top:10px"><span class="unit">विभागाच्या तक्त्याप्रमाणे आकडे भरले आहेत</span>
+        <button class="btn small ${M.strangeVerified?"":"ghost"}" id="verifyStrange">${M.strangeVerified?"✓ पडताळले":"पडताळले म्हणून खूण करा"}</button></div>
+      <p class="unit" style="margin-top:8px">दोन ओळींमधल्या पावसासाठी सरळ रेषेत (interpolation) आकडा काढला जातो. कमी पावसाच्या वर्षात वाहून जाणारे पाणी पावसापेक्षा जास्त वेगाने घटते — एल निनोच्या नियोजनासाठी हीच पद्धत सर्वात जवळची आहे.</p>
+    </div>
+
+    <div class="card"><b>पावसाची वर्षे (गुणक)</b><div class="grid2">
+      ${Object.keys(M.rainScen).map(k=>`<label class="f"><span>${{good:"चांगला पाऊस",normal:"सामान्य",low:"कमी पाऊस"}[k]}</span>
+        <input type="number" step="0.05" data-t="rainScen.${k}" value="${M.rainScen[k]}"></label>`).join("")}</div>
+      <p class="unit">कॅलिब्रेशन: गावातील एखादा बंधारा प्रत्यक्षात किती वेळा भरला, किंवा GSDA च्या विहीर पातळीतील वाढ — याच्याशी ताळेबंद जुळतो का ते एकदा तपासा. जुळत नसेल तर गुणांक बदला, गावाचा अनुभव नाही.</p>
+    </div>`;
+  }
+  if (UI.techTab === "norms"){
+    body = `<div class="card"><b>पिण्याच्या पाण्याचे प्रमाण (लिटर / दिवस)</b><div class="grid2">
+      ${Object.keys(M.norms).map(k=>`<label class="f"><span>${{person:"माणूस",large:"मोठे जनावर",small:"लहान जनावर",bird:"पक्षी"}[k]}</span>
+      <input type="number" data-t="norms.${k}" value="${M.norms[k]}"></label>`).join("")}</div></div>
+      <div class="card"><b>कामांच्या स्थितीचे गुणक</b><div class="grid2">
+      ${Object.keys(M.cond).map(k=>`<label class="f"><span>${{good:"चांगली",mod:"गाळ भरलेले",poor:"दुरुस्ती हवी"}[k]}</span>
+      <input type="number" step="0.05" data-t="cond.${k}" value="${M.cond[k]}"></label>`).join("")}
+      <label class="f"><span>एका कामाच्या दुरुस्तीचा खर्च (₹)</span><input type="number" data-t="restoreCost" value="${M.restoreCost}"></label>
+      <label class="f"><span>टँकरची क्षमता (लिटर)</span><input type="number" data-t="tankerL" value="${M.tankerL}"></label>
+      </div></div>`;
+  }
+  if (UI.techTab === "crops"){
+    body = `<div class="card"><b>पिकांना हेक्टरी लागणारे पाणी (कोटी लिटर)</b>
+      <div class="tscroll"><table><thead><tr><th>पीक</th><th class="num">कोटी लि./हे.</th><th class="num">मिमी</th><th>हंगाम</th></tr></thead><tbody>
+      ${M.crops.map((c,i)=>`<tr><td>${c.mr}</td>
+        <td class="num"><input style="width:90px;min-height:38px" type="number" step="0.05" data-t="crops.${i}.rate" value="${c.rate}"></td>
+        <td class="num">${n0(c.rate*1000)}</td><td>${c.season}</td></tr>`).join("")}
+      </tbody></table></div></div>`;
+  }
+  if (UI.techTab === "structs"){
+    body = `<div class="card"><b>कामांची क्षमता, भरण, खर्च व कमाल मर्यादा</b>
+      <div class="tscroll"><table><thead><tr><th>काम</th><th class="num">क्षमता m³</th><th class="num">प्रत्यक्ष m³</th>
+      <th class="num">भरण</th><th class="num">खर्च ₹/नग</th><th class="num">कमाल</th></tr></thead><tbody>
+      ${M.structs.map((s,i)=>`<tr><td>${s.mr}<br><span class="unit">${s.stage}</span></td>
+        ${["cap","act","fills","cost","max"].map(f=>`<td class="num"><input style="width:88px;min-height:38px" type="number" data-t="structs.${i}.${f}" value="${s[f]}"></td>`).join("")}
+      </tr>`).join("")}</tbody></table></div>
+      <div class="note">क्रम: ridge (डोंगरावरील कामे) → nala (नाल्यावरील कामे) → field (शेतातील कामे). वाहून जाणारे पाणी याच क्रमाने वाटले जाते, त्यामुळे तेच पाणी दोनदा मोजले जात नाही.</div></div>`;
+  }
+  if (UI.techTab === "save"){
+    body = `<div class="card"><b>बचतीचे उपाय</b><div class="grid2">
+      <label class="f"><span>ठिबकमुळे बचत %</span><input type="number" data-t="save.drip" value="${M.save.drip}"></label>
+      <label class="f"><span>आच्छादनामुळे बचत %</span><input type="number" data-t="save.mulch" value="${M.save.mulch}"></label>
+      <label class="f"><span>कमी कालावधीच्या वाणामुळे बचत %</span><input type="number" data-t="save.shortVar" value="${M.save.shortVar}"></label>
+      <label class="f"><span>ठिबक खर्च ₹/हेक्टर</span><input type="number" data-t="save.dripCost" value="${M.save.dripCost}"></label>
+      <label class="f"><span>आच्छादन खर्च ₹/हेक्टर</span><input type="number" data-t="save.mulchCost" value="${M.save.mulchCost}"></label>
+      </div>
+      <div class="note">ठिबक व आच्छादन यांची बचत सध्या एकूण पिकांखालील क्षेत्रावर सरसरीने लावली जाते. प्रत्यक्षात ही बचत फक्त ज्या क्षेत्रावर हा उपाय केला तिथेच मिळते.</div>
+    </div>`;
+  }
+  if (UI.techTab === "villages"){
+    const dOpts = v => Object.keys(DISTRICTS).map(d=>`<option value="${d}" ${v.district===d?"selected":""}>${d}</option>`).join("");
+    const tOpts = v => (DISTRICTS[v.district]||DISTRICTS["इतर"]).map(t=>`<option value="${t}" ${v.taluka===t?"selected":""}>${t}</option>`).join("");
+    const cards = M.villages.map((v,i)=>{
+      const sum = landSum(v), area = +v.area||0;
+      const diff = area - sum;
+      const flag = (area>0 && Math.abs(diff) > area*0.02)
+        ? `<span class="conf l">वर्गवारीची बेरीज ${n0(sum)} हे. · फरक ${n0(diff)} हे.</span>`
+        : (area>0 ? `<span class="conf h">वर्गवारी जुळते</span>` : "");
+      return `<div class="card" style="padding:12px 14px">
+        <div class="row"><b>${v.name||"नवीन गाव"}</b><button class="btn small ghost" data-delv="${i}">काढा</button></div>
+        <div class="grid2">
+          <label class="f"><span>गावाचे नाव</span><input data-t="villages.${i}.name" value="${v.name||""}"></label>
+          <label class="f"><span>जिल्हा</span><select data-t="villages.${i}.district">${dOpts(v)}</select></label>
+          <label class="f"><span>तालुका</span><select data-t="villages.${i}.taluka">${tOpts(v)}</select></label>
+          <label class="f"><span>ग्रामपंचायत</span><input data-t="villages.${i}.gp" value="${v.gp||""}"></label>
+          <label class="f"><span>लोकसंख्या (जनगणना)</span><input type="number" data-t="villages.${i}.pop" value="${+v.pop||0}"></label>
+          <label class="f"><span>एकूण भौगोलिक क्षेत्र (हे.)</span><input type="number" data-t="villages.${i}.area" value="${+v.area||0}"></label>
+        </div>
+        <div class="unit" style="margin:8px 0 2px">क्षेत्राची वर्गवारी (हेक्टर) ${flag}</div>
+        <div class="grid2">
+          ${LANDF.map(([f,lbl])=>`<label class="f"><span>${lbl}</span>
+            <input type="number" data-t="villages.${i}.${f}" value="${+v[f]||0}"></label>`).join("")}
+        </div>
+        <div class="flow" style="margin:6px 0">
+          <div>लागवडीखालील एकूण <b>${n0(sownOf(v))} हे.</b></div>
+          <div>कामांसाठी उपलब्ध (वन + पडीक + गायरान + लागवडीयोग्य पडीक) <b>${n0(treatOf(v))} हे.</b></div>
+        </div>
+        <div class="grid2">
+          <label class="f"><span>सरासरी पाऊस (मिमी)</span><input type="number" data-t="villages.${i}.rain" value="${+v.rain||0}"></label>
+          <label class="f"><span>जमिनीचा प्रकार</span><select data-t="villages.${i}.terrain">
+            ${Object.keys(M.terrainName).map(t=>`<option value="${t}" ${v.terrain===t?"selected":""}>${M.terrainName[t]}</option>`).join("")}</select></label>
+        </div>
+      </div>`;
+    }).join("");
+    body = `<div class="card"><b>गाव यादी — ${n0(M.villages.length)} गावे</b>
+        <p class="unit">जनगणना व गाव नमुना ७/१२ मधील आकडे इथे एकदाच भरा. गाव मोडमध्ये हे आपोआप वापरले जातात आणि चर, बांधबंदिस्ती व शेततळ्यांची कमाल मर्यादा याच क्षेत्रावरून ठरते.</p>
+        <button class="btn small" id="addv">+ नवीन गाव</button></div>
+      ${cards}
+      <div class="card"><b>अनेक गावे एकदाच भरा (CSV / Excel मधून कॉपी करून चिकटवा)</b>
+        <p class="unit">प्रत्येक ओळीत, स्वल्पविरामाने किंवा Tab ने वेगळे करून, याच क्रमाने:<br>
+        <b>गाव, जिल्हा, तालुका, लोकसंख्या, एकूण क्षेत्र, वन, बागायत, जिरायत, पडीक, गायरान, लागवडीयोग्य पडीक, पाऊस मिमी, जमीन (plain/medium/hill)</b><br>
+        उदाहरण: नमुना गाव, नंदुरबार, शहादा, 1420, 1008, 180, 220, 480, 48, 50, 30, 450, medium</p>
+        <textarea id="bulk" placeholder="इथे ओळी चिकटवा"></textarea>
+        <div class="grid2" style="margin-top:8px">
+          <button class="btn small" id="bulkAdd">यादीत जोडा</button>
+          <button class="btn small ghost" id="bulkReplace">जुनी यादी बदलून टाका</button>
+        </div>
+        <div class="status" id="bulkMsg" style="display:none"></div></div>`;
+  }
+  if (UI.techTab === "data"){
+    body = `<div class="card"><b>तांत्रिक पिन बदला</b>
+      <p class="unit">पिन बदलल्यानंतर फक्त नवीन पिन माहीत असलेली व्यक्तीच तांत्रिक मोड उघडू शकेल. पिन या उपकरणापुरता जतन होतो.</p>
+      <div class="grid2">
+        <label class="f"><span>नवीन पिन (किमान ४ अंक)</span><input type="password" inputmode="numeric" id="pin1" autocomplete="new-password"></label>
+        <label class="f"><span>नवीन पिन पुन्हा लिहा</span><input type="password" inputmode="numeric" id="pin2" autocomplete="new-password"></label>
+      </div>
+      <button class="btn small" id="pinSave">पिन जतन करा</button>
+      <div class="status" id="pinMsg" style="display:none"></div>
+      <p class="unit" style="margin-top:8px">हा पिन साधे कुलूप आहे — माहिती लपवत नाही, फक्त चुकून बदल होऊ नये म्हणून आहे. सर्व गटांना एकच फाइल देताना वाटण्यापूर्वी फाइलमधील <b>pin:"1234"</b> ही ओळ एकदा बदलून घ्या.</p>
+    </div>
+    <div class="card"><b>माहिती जतन व हस्तांतर</b>
+      <p class="unit">खालील मजकूर कॉपी करून दुसऱ्या फोनवर चिकटवा — इंटरनेटशिवाय माहिती हलवता येते.</p>
+      <textarea id="dump">${JSON.stringify({M: Object.assign({}, M, {pin: undefined}), V, P})}</textarea>
+      <div class="grid2" style="margin-top:10px">
+        <button class="btn small" id="imp">चिकटवलेली माहिती घ्या</button>
+        <button class="btn small ghost" id="rst">मूळ तांत्रिक आकडे परत आणा</button>
+      </div></div>`;
+  }
+  $("#app").innerHTML = `<div class="card"><p class="q">तांत्रिक मोड</p>
+      <p class="sub">इथले आकडे फक्त संस्थेच्या तांत्रिक व्यक्तीने बदलावेत. गाव मोडमध्ये हे विचारले जात नाही.</p>
+      <div class="chips">${tabs.map(t=>`<button class="chip" type="button" data-tab="${t[0]}" aria-pressed="${UI.techTab===t[0]}">${t[1]}</button>`).join("")}</div>
+    </div>${body}`;
+  $("#nav").innerHTML = `<button class="btn" id="done">जतन करून गाव मोडमध्ये जा</button>`;
+  $("#done").onclick = ()=>{ UI.tech = false; save(); render(); };
+  $("#app").querySelectorAll("[data-tab]").forEach(b=> b.onclick = ()=>{ UI.techTab = b.dataset.tab; render(); });
+  $("#app").querySelectorAll("[data-rm]").forEach(b=> b.onclick = ()=>{ M.runoffMethod = b.dataset.rm; save(); render(); });
+  const vs = $("#verifyStrange"); if (vs) vs.onclick = ()=>{ M.strangeVerified = !M.strangeVerified; save(); render(); };
+  $("#app").querySelectorAll("[data-t]").forEach(inp=>{
+    inp.onchange = ()=>{
+      const path = inp.dataset.t.split("."); let o = M;
+      for (let i=0;i<path.length-1;i++) o = o[path[i]];
+      const raw = inp.value;
+      o[path[path.length-1]] = inp.type === "number" ? (raw===""?0:+raw) : raw;
+      save(); render();
+    };
+  });
+  const av = $("#addv"); if (av) av.onclick = ()=>{
+    M.villages.push({id:uid("v_"), name:"नवीन गाव", district:V.district, taluka:V.taluka, gp:"", pop:0, area:0,
+      forest:0, sownIrr:0, sownRain:0, fallow:0, pasture:0, waste:0, rain:0, terrain:"medium",
+      src:{area:"m",pop:"m",rain:"m"}});
+    save(); render();
+  };
+  $("#app").querySelectorAll("[data-delv]").forEach(b=> b.onclick = ()=>{ M.villages.splice(+b.dataset.delv,1); save(); render(); });
+  const imp = $("#imp"); if (imp) imp.onclick = ()=>{
+    try {
+      const o = JSON.parse($("#dump").value);
+      const keepPin = M.pin;
+      if (o.M){
+        const incoming = o.M;
+        M = Object.assign(clone(DEF_MASTER), incoming);
+        M.shares = Object.assign(clone(DEF_MASTER.shares), incoming.shares || {});
+        M.landC = Object.assign(clone(DEF_MASTER.landC), incoming.landC || {});
+        M.save = Object.assign(clone(DEF_MASTER.save), incoming.save || {});
+        M.norms = Object.assign(clone(DEF_MASTER.norms), incoming.norms || {});
+        M.cond = Object.assign(clone(DEF_MASTER.cond), incoming.cond || {});
+        M.rainScen = Object.assign(clone(DEF_MASTER.rainScen), incoming.rainScen || {});
+        M.strangeClass = Object.assign(clone(DEF_MASTER.strangeClass), incoming.strangeClass || {});
+        if (!Array.isArray(M.strange) || !M.strange.length) M.strange = clone(DEF_MASTER.strange);
+        if (!Array.isArray(M.crops) || !M.crops.length) M.crops = clone(DEF_MASTER.crops);
+        if (!Array.isArray(M.structs) || !M.structs.length) M.structs = clone(DEF_MASTER.structs);
+        if (!Array.isArray(M.villages)) M.villages = [];
+        M.villages.forEach(v=>{ if (!v.id) v.id = uid("v_"); });
+        M.pin = incoming.pin || keepPin;
+      }
+      if (o.V) V = Object.assign(DEF_VILLAGE(), o.V);
+      if (o.P) { P = Object.assign(clone(DEF_PLAN()), o.P); P.add = P.add || {}; }
+      save(); render();
+    }
+    catch(e){ alert("माहिती वाचता आली नाही."); }
+  };
+  const parseRows = txt => {
+    const out = [], bad = [];
+    txt.split(/\r?\n/).forEach(line=>{
+      if (!line.trim()) return;
+      const c = line.split(/\t|,/).map(x=>x.trim());
+      if (c.length < 5 || !c[0] || isNaN(+c[4])) { bad.push(line); return; }
+      const num = i => (c[i]===undefined || c[i]==="" || isNaN(+c[i])) ? 0 : +c[i];
+      out.push({id:uid("v_"), name:c[0], district:c[1]||"नंदुरबार", taluka:c[2]||"", gp:"", pop:num(3), area:num(4),
+        forest:num(5), sownIrr:num(6), sownRain:num(7), fallow:num(8), pasture:num(9), waste:num(10),
+        rain:num(11), terrain:(["plain","medium","hill"].indexOf((c[12]||"").toLowerCase())>=0 ? c[12].toLowerCase() : "medium"),
+        src:{area:"h", pop:"h", rain:"m"}});
+    });
+    return {out, bad};
+  };
+  const runBulk = replace => {
+    const msg = $("#bulkMsg"); msg.style.display = "block";
+    const {out, bad} = parseRows($("#bulk").value);
+    if (!out.length){ msg.className = "status bad"; msg.textContent = "एकही ओळ वाचता आली नाही. क्रम तपासा."; return; }
+    M.villages = replace ? out : M.villages.concat(out);
+    save();
+    msg.className = "status ok";
+    msg.textContent = n0(out.length)+" गावे जोडली." + (bad.length ? " "+n0(bad.length)+" ओळी वगळल्या." : "");
+    setTimeout(render, 900);
+  };
+  const ba = $("#bulkAdd"); if (ba) ba.onclick = ()=> runBulk(false);
+  const br = $("#bulkReplace"); if (br) br.onclick = ()=>{ if (confirm("सध्याची गाव यादी पूर्ण बदलायची?")) runBulk(true); };
+  const ps = $("#pinSave"); if (ps) ps.onclick = ()=>{
+    const a1 = $("#pin1").value.trim(), a2 = $("#pin2").value.trim(), msg = $("#pinMsg");
+    msg.style.display = "block";
+    if (a1.length < 4){ msg.className = "status bad"; msg.textContent = "पिन किमान ४ अंकांचा हवा."; return; }
+    if (a1 !== a2){ msg.className = "status bad"; msg.textContent = "दोन्ही पिन जुळत नाहीत."; return; }
+    M.pin = a1; save();
+    msg.className = "status ok"; msg.textContent = "नवीन पिन जतन झाला. पुढच्या वेळी हाच पिन वापरा.";
+    $("#pin1").value = ""; $("#pin2").value = "";
+  };
+  const rst = $("#rst"); if (rst) rst.onclick = ()=>{ if (confirm("मूळ तांत्रिक आकडे परत आणायचे? (पिन बदलणार नाही)")){ const keepPin = M.pin; M = clone(DEF_MASTER); M.pin = keepPin; M.villages.forEach(v=>{ if (!v.id) v.id = uid("v_"); }); save(); render(); } };
+}
+
+/* ============ WIRING ============ */
+function wire(){
+  const a = $("#app");
+  a.querySelectorAll("[data-v]").forEach(inp=>{
+    const k = inp.dataset.v;
+    if (inp.tagName === "SELECT"){
+      inp.onchange = ()=>{
+        V[k] = inp.value;
+        if (k === "district") V.taluka = DISTRICTS[V.district][0];
+        if (k === "district" || k === "taluka"){ V.name = ""; V.id = null; }
+        save(); render();
+      };
+    } else {
+      inp.oninput = ()=>{
+        V[k] = inp.type === "number"
+          ? (inp.value===""?(k==="rainCustom"?null:0):+inp.value) : inp.value;
+        save();
+      };
+      inp.onchange = ()=> save();
+    }
+  });
+  const vp = $("#villagePick"); if (vp) vp.onchange = ()=>{
+    const v = M.villages.find(x=>x.id === vp.value);
+    if (v){
+      /* FIX: start from a clean village so crops, structures, livestock, population
+         and the old plan of the previous village do not carry over. */
+      if (V.id !== v.id){
+        const keep = {district:V.district, taluka:V.taluka, rainScen:V.rainScen};
+        V = Object.assign(DEF_VILLAGE(), keep);
+        P = Object.assign(DEF_PLAN(), {margin:P.margin, budget:P.budget});
+      }
+      V.id = v.id; V.name = v.name;
+      V.area = v.area; V.rain = v.rain; V.terrain = v.terrain;
+      V.rainCustom = null;
+      ["forest","sownIrr","sownRain","fallow","pasture","waste"].forEach(f=> V[f] = +v[f]||0);
+      if (v.taluka) V.taluka = v.taluka;
+      if (v.district && DISTRICTS[v.district]) V.district = v.district;
+      if (!(+V.pop>0)) V.pop = +v.pop||0;
+      V.src = Object.assign({}, V.src, v.src||{});
+    } else { V.id = null; V.name = ""; }
+    save(); render();
+  };
+  a.querySelectorAll("[data-step]").forEach(b=> b.onclick = ()=>{
+    const [k, d] = b.dataset.step.split(":");
+    const cur = +V[k]||0; const stepSize = cur >= 500 ? 50 : (cur >= 100 ? 10 : 1);
+    V[k] = Math.max(0, cur + (+d)*stepSize);
+    const inp = a.querySelector('[data-v="'+k+'"]'); if (inp) inp.value = V[k];
+    save(); render();
+  });
+  a.querySelectorAll("[data-fstep]").forEach(b=> b.onclick = ()=>{
+    const [k, d] = b.dataset.fstep.split(":");
+    const cur = +V[k]||0;
+    V[k] = Math.max(0, Math.round((cur + (+d))*100)/100);
+    const inp = a.querySelector('[data-v="'+k+'"]'); if (inp) inp.value = V[k];
+    save(); render();
+  });
+  a.querySelectorAll("[data-crop]").forEach(b=> b.onclick = ()=>{
+    const k = b.dataset.crop;
+    if (V.crops[k]) delete V.crops[k]; else V.crops[k] = {acre:0, unit:"acre", season:cropDef(k).season};
+    save(); render();
+  });
+  a.querySelectorAll("[data-cropoff]").forEach(b=> b.onclick = ()=>{ delete V.crops[b.dataset.cropoff]; save(); render(); });
+  a.querySelectorAll("[data-cacre]").forEach(inp=> inp.oninput = ()=>{ V.crops[inp.dataset.cacre].acre = +inp.value||0; save(); });
+  a.querySelectorAll("[data-cstep]").forEach(b=> b.onclick = ()=>{
+    const [k,d] = b.dataset.cstep.split(":");
+    const cur = +V.crops[k].acre||0; const st = cur >= 100 ? 10 : (cur >= 20 ? 5 : 1);
+    V.crops[k].acre = Math.max(0, cur + (+d)*st);
+    const inp = a.querySelector('[data-cacre="'+k+'"]'); if (inp) inp.value = V.crops[k].acre;
+    save(); render();
+  });
+  a.querySelectorAll("[data-cunit]").forEach(b=> b.onclick = ()=>{
+    const k = b.dataset.cunit, e = V.crops[k];
+    /* FIX: keep 2 decimals so toggling units does not change the crop area */
+    if (e.unit === "ha"){ e.unit = "acre"; e.acre = Math.round(e.acre/0.4047*100)/100; }
+    else { e.unit = "ha"; e.acre = Math.round(e.acre*0.4047*100)/100; }
+    save(); render();
+  });
+  a.querySelectorAll("[data-cseason]").forEach(b=> b.onclick = ()=>{
+    const [k,s] = b.dataset.cseason.split(":"); V.crops[k].season = s; save(); render();
+  });
+  a.querySelectorAll("[data-struct]").forEach(b=> b.onclick = ()=>{
+    const k = b.dataset.struct; const ex = V.structs[k];
+    if (ex && (ex.picked || ex.n)) delete V.structs[k];
+    else V.structs[k] = {n:0, cond:"good", picked:true};
+    save(); render();
+  });
+  a.querySelectorAll("[data-sn]").forEach(inp=> inp.oninput = ()=>{ V.structs[inp.dataset.sn].n = +inp.value||0; save(); });
+  a.querySelectorAll("[data-sstep]").forEach(b=> b.onclick = ()=>{
+    const [k,d] = b.dataset.sstep.split(":");
+    const cur = +V.structs[k].n||0; const st = cur >= 100 ? 10 : (cur >= 20 ? 5 : 1);
+    V.structs[k].n = Math.max(0, cur + (+d)*st);
+    const inp = a.querySelector('[data-sn="'+k+'"]'); if (inp) inp.value = V.structs[k].n;
+    save(); render();
+  });
+  a.querySelectorAll("[data-cond]").forEach(b=> b.onclick = ()=>{
+    const [k,c] = b.dataset.cond.split(":"); V.structs[k].cond = c; save(); render();
+  });
+  a.querySelectorAll("[data-scen]").forEach(b=> b.onclick = ()=>{
+    V.rainScen = b.dataset.scen; V.rainCustom = null; save(); render();
+  });
+  const cr = $("#clearRain"); if (cr) cr.onclick = ()=>{ V.rainCustom = null; save(); render(); };
+  const av2 = $("#addVillage"); if (av2) av2.onclick = ()=>{
+    const pin = prompt("गाव यादी बदलण्यासाठी तांत्रिक पिन:");
+    if (pin !== M.pin){ if (pin !== null) alert("चुकीचा पिन."); return; }
+    UI.tech = true; UI.techTab = "villages"; render(); window.scrollTo(0,0);
+  };
+}
+
+/* ============ start ============ */
+$("#modeBtn").onclick = ()=>{
+  if (!UI.tech){
+    const pin = prompt("तांत्रिक मोडसाठी पिन:");
+    if (pin !== M.pin) { if (pin !== null) alert("चुकीचा पिन."); return; }
+    UI.tech = true;
+  } else UI.tech = false;
+  render();
+};
+render();
+})();
+</script>
+</body>
+</html>
