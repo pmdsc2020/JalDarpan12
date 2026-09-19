@@ -1,13 +1,13 @@
 package com.dsc.jaldarpan;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.print.PrintAttributes;
 import android.print.PrintDocumentAdapter;
 import android.print.PrintManager;
-import android.view.View;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
@@ -15,15 +15,14 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
-import androidx.activity.OnBackPressedCallback;
-import androidx.appcompat.app.AppCompatActivity;
-
 /**
  * Jaldarpan — village water budget tool.
  * The whole app is one offline HTML file in assets/index.html.
- * This activity only hosts it in a WebView and adds Android printing.
+ * This activity hosts it in a WebView and adds Android printing.
+ *
+ * No external libraries are used, so the build has no dependencies to clash.
  */
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
 
     private WebView web;
 
@@ -47,13 +46,10 @@ public class MainActivity extends AppCompatActivity {
         s.setDatabaseEnabled(true);
         s.setAllowFileAccess(true);
         s.setAllowContentAccess(true);
-        s.setLoadWithOverviewMode(false);
-        s.setUseWideViewPort(false);
         s.setSupportZoom(true);
         s.setBuiltInZoomControls(true);
         s.setDisplayZoomControls(false);
         s.setCacheMode(WebSettings.LOAD_DEFAULT);
-        s.setMediaPlaybackRequiresUserGesture(true);
 
         web.addJavascriptInterface(new JsBridge(), "AndroidBridge");
         web.setWebViewClient(new WebViewClient() {
@@ -61,8 +57,7 @@ public class MainActivity extends AppCompatActivity {
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 Uri u = request.getUrl();
                 String scheme = u.getScheme() == null ? "" : u.getScheme();
-                // keep the app's own pages inside, send real web links to the browser
-                if (scheme.equals("file")) return false;
+                if (scheme.equals("file")) return false;          // stay inside the app
                 if (scheme.equals("http") || scheme.equals("https")
                         || scheme.equals("tel") || scheme.equals("mailto")) {
                     try {
@@ -86,15 +81,6 @@ public class MainActivity extends AppCompatActivity {
         } else {
             web.loadUrl("file:///android_asset/index.html");
         }
-
-        // Back button: go back inside the app first, then leave
-        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
-            @Override
-            public void handleOnBackPressed() {
-                if (web.canGoBack()) web.goBack();
-                else finish();
-            }
-        });
     }
 
     @Override
@@ -103,11 +89,20 @@ public class MainActivity extends AppCompatActivity {
         web.saveState(outState);
     }
 
+    /** Back button: go back inside the app first, then leave. */
+    @Override
+    public void onBackPressed() {
+        if (web != null && web.canGoBack()) web.goBack();
+        else super.onBackPressed();
+    }
+
     /** Called from the page when the user taps छापा / PDF. */
     public class JsBridge {
         @JavascriptInterface
         public void printPage() {
-            runOnUiThread(() -> doPrint());
+            runOnUiThread(new Runnable() {
+                @Override public void run() { doPrint(); }
+            });
         }
     }
 
@@ -120,14 +115,5 @@ public class MainActivity extends AppCompatActivity {
                 .setMinMargins(PrintAttributes.Margins.NO_MARGINS)
                 .build();
         pm.print(getString(R.string.print_job), adapter, attrs);
-    }
-
-    @Override
-    protected void onDestroy() {
-        if (web != null) {
-            web.removeJavascriptInterface("AndroidBridge");
-            ((View) web.getParent()).setVisibility(View.GONE);
-        }
-        super.onDestroy();
     }
 }
