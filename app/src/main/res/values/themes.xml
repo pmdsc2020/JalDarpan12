@@ -1,5 +1,5 @@
 <resources>
-    <style name="Theme.Jaldarpan" parent="Theme.AppCompat.DayNight.NoActionBar">
+    <style name="Theme.Jaldarpan" parent="@android:style/Theme.Material.Light.NoActionBar">
         <item name="android:statusBarColor">@color/jd_deep</item>
         <item name="android:windowBackground">@color/jd_paper</item>
     </style>
